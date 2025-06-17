@@ -1,0 +1,39 @@
+spring:
+  autoconfigure:
+    exclude: org.springframework.ai.vectorstore.redis.autoconfigure.RedisVectorStoreAutoConfiguration
+  datasource:
+    url: jdbc:mysql://localhost:3306/stock_db?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: {DB_USERNAME}
+    password: {DB_USERNAME}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update   # 개발 시에는 update, 운영 시에는 validate or none 권장
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+    show-sql: true
+
+
+  sql:
+    init:
+      mode: never
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: {GOOGLE_CLIENT_ID}
+            client-secret: {GOOGLE_CLIENT_SECRET}
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            scope:
+              - profile
+              - email
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
+            token-uri: https://oauth2.googleapis.com/token
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+            user-name-attribute: sub
