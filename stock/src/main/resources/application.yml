@@ -3,8 +3,8 @@ spring:
     exclude: org.springframework.ai.vectorstore.redis.autoconfigure.RedisVectorStoreAutoConfiguration
   datasource:
     url: jdbc:mysql://localhost:3306/stock_db?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
-    username: {DB_USERNAME}
-    password: {DB_USERNAME}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
@@ -25,8 +25,8 @@ spring:
       client:
         registration:
           google:
-            client-id: {GOOGLE_CLIENT_ID}
-            client-secret: {GOOGLE_CLIENT_SECRET}
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
             redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
             scope:
               - profile
