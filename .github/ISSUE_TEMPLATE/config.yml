@@ -1,5 +1,1 @@
 blank_issues_enabled: false
-contact_links:
-  - name: 💬 질문하기
-    url: https://github.com/MOBI-Graduation-Project/MOBI_BE/discussions
-    about: 기능이나 구현에 대해 질문하고 싶을 때 사용해주세요.
