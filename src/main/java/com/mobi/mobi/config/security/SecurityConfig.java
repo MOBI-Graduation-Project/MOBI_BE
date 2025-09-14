@@ -1,4 +1,4 @@
-package com.mobi.mobi.config;
+package com.mobi.mobi.config.security;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;

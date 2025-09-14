@@ -26,6 +26,9 @@ public class Member extends BaseEntity {
     @Column(nullable = false, unique = true, length = 20)
     private String username;
 
+    @Column(nullable = false, length = 20)
+    private String nickname;
+
     @Column
     private String password;
 
@@ -46,6 +49,9 @@ public class Member extends BaseEntity {
 
     @Column(name = "location_updated_at")
     private LocalDateTime locationUpdatedAt;
+
+    @Column(name = "investment_answers")
+    private String investmentAnswers;
 
     @Builder
     public Member(String username, String email, String profileImgUrl, LoginType loginType) {
