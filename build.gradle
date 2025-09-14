@@ -50,10 +50,7 @@ dependencies {
 	// oauth
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 
-	// RestTemplate 대신 WebClient 사용을 위한 의존성
-	implementation 'org.springframework.boot:spring-boot-starter-webflux'
-
-	// WebClient를 사용하기 위한 WebFlux 의존성
+	// RestTemplate 대신 WebClient 사용을 위한 WebFlux 의존성
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 }
 
