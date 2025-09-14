@@ -42,6 +42,9 @@ public class Member extends BaseEntity {
     @Column(name = "profile_img_url")
     private String profileImgUrl;
 
+    @Column(name = "profile_describe")
+    private String profileDescribe;
+
     private String avatar;
 
     @Column(name = "district_name")
