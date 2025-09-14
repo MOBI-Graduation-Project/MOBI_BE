@@ -49,14 +49,20 @@ public class OauthService {
 
         String email = (String) userInfo.get("email");
         String name = (String) userInfo.get("name");
+        String profileImgUrl = (String) userInfo.get("picture");
 
         Optional<Member> memberOptional = memberRepository.findByEmail(email);
         boolean isNewMember = memberOptional.isEmpty();
-        Member member = memberOptional.orElseGet(() -> {
+        Member member = memberOptional.map(existingMember -> {
+            return existingMember.update(name, profileImgUrl);
+        }).orElseGet(() -> {
             Member newMember = Member.builder()
-                    .email(email).username(name).profileImgUrl(null).loginType(LoginType.GOOGLE)
+                    .email(email)
+                    .username(name)
+                    .profileImgUrl(profileImgUrl)
+                    .loginType(LoginType.GOOGLE)
                     .build();
-            newMember.setIsPrivacyAgreed(true);
+            newMember.setIsPrivacyAgreed(false);
             return memberRepository.save(newMember);
         });
 

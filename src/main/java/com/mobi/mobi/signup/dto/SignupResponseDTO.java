@@ -16,6 +16,8 @@ public class SignupResponseDTO {
     private final String investmentAnswers;
     @Schema(description = "약관 동의 여부")
     private final Boolean isPrivacyAgreed;
+    @Schema(description = "설문 결과에 따라 결정된 아바타 타입", example = "AVATAR_TYPE_1")
+    private final String avatar;
 
     public SignupResponseDTO(Member member) {
         this.memberId = member.getId();
@@ -23,5 +25,6 @@ public class SignupResponseDTO {
         this.nickname = member.getNickname();
         this.investmentAnswers = member.getInvestmentAnswers();
         this.isPrivacyAgreed = member.getIsPrivacyAgreed();
+        this.avatar = member.getAvatar();
     }
 }
