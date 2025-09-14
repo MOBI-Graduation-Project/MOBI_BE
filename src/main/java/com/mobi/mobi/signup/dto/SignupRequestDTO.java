@@ -17,7 +17,7 @@ public class SignupRequestDTO {
     private String nickname;
 
     @NotBlank(message = "설문 결과를 입력해주세요.")
-    @Schema(description = "사용자가 답변한 설문 결과 (JSON 형태의 문자열)", example = "{\"question1\":\"answer1\", \"question2\":\"answer2\"}")
+    @Schema(description = "사용자가 답변한 설문 결과 ", example = "111")
     private String investmentAnswers;
 
     @NotNull(message = "약관 동의 여부를 입력해주세요.")
