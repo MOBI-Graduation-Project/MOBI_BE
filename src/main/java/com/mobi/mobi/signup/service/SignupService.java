@@ -1,6 +1,7 @@
 package com.mobi.mobi.signup.service;
 
 import com.mobi.mobi.member.entity.Member;
+import com.mobi.mobi.member.entity.enums.Avatar;
 import com.mobi.mobi.member.repository.MemberRepository;
 import com.mobi.mobi.signup.dto.SignupRequestDTO;
 import com.mobi.mobi.signup.dto.SignupResponseDTO;
@@ -25,9 +26,28 @@ public class SignupService {
         member.setInvestmentAnswers(requestDTO.getInvestmentAnswers());
         member.setIsPrivacyAgreed(requestDTO.getIsPrivacyAgreed());
 
-        // 3. @Transactional 어노테이션에 의해 메서드가 종료될 때 변경된 내용이 DB에 자동으로 저장됩니다 (더티 체킹).
+        // 아바타/프로필
+        Avatar determinedAvatar = determineAvatar(requestDTO.getInvestmentAnswers());
+        member.setAvatar(determinedAvatar);
 
-        // 4. 업데이트된 회원 정보를 DTO로 변환하여 반환합니다.
         return new SignupResponseDTO(member);
+    }
+
+
+    //아바타결정
+    private Avatar determineAvatar(String answers) {
+        switch (answers) {
+            case "111": return Avatar.AVATAR_TYPE_1;
+            case "112": return Avatar.AVATAR_TYPE_2;
+            case "121": return Avatar.AVATAR_TYPE_3;
+            case "211": return Avatar.AVATAR_TYPE_4;
+            case "122": return Avatar.AVATAR_TYPE_5;
+            case "212": return Avatar.AVATAR_TYPE_6;
+            case "221": return Avatar.AVATAR_TYPE_7;
+            case "222": return Avatar.AVATAR_TYPE_8;
+            default:
+                // 기본값 또는 예외 처리
+                throw new IllegalArgumentException("유효하지 않은 설문 결과 코드입니다: " + answers);
+        }
     }
 }
