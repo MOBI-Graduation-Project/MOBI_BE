@@ -1,7 +1,7 @@
 package com.mobi.mobi.auth.service;
 
 import com.mobi.mobi.auth.dto.GoogleLoginResponseDTO;
-import com.mobi.mobi.config.jwt.JwtTokenProvider;
+import com.mobi.mobi.config.security.jwt.JwtTokenProvider;
 import com.mobi.mobi.member.entity.Member;
 import com.mobi.mobi.member.entity.enums.LoginType;
 import com.mobi.mobi.member.repository.MemberRepository;
