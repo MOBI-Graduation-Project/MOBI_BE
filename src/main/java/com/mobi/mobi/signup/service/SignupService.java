@@ -1,6 +1,7 @@
 package com.mobi.mobi.signup.service;
 
 import com.mobi.mobi.member.entity.Member;
+import com.mobi.mobi.member.entity.enums.Avatar;
 import com.mobi.mobi.member.repository.MemberRepository;
 import com.mobi.mobi.signup.dto.SignupRequestDTO;
 import com.mobi.mobi.signup.dto.SignupResponseDTO;
@@ -25,31 +26,27 @@ public class SignupService {
         member.setInvestmentAnswers(requestDTO.getInvestmentAnswers());
         member.setIsPrivacyAgreed(requestDTO.getIsPrivacyAgreed());
 
-
-        member.setNickname(requestDTO.getNickname());
-        member.setInvestmentAnswers(requestDTO.getInvestmentAnswers());
-        member.setIsPrivacyAgreed(requestDTO.getIsPrivacyAgreed());
-
         // 아바타/프로필
-        String avatarType = determineAvatar(member.getInvestmentAnswers());
-        member.setAvatar(avatarType);
+        Avatar determinedAvatar = determineAvatar(requestDTO.getInvestmentAnswers());
+        member.setAvatar(determinedAvatar);
 
         return new SignupResponseDTO(member);
     }
 
 
     //아바타결정
-    private String determineAvatar(String answers) {
+    private Avatar determineAvatar(String answers) {
         switch (answers) {
-            case "111": return "AVATAR_TYPE_1";
-            case "112": return "AVATAR_TYPE_2";
-            case "121": return "AVATAR_TYPE_3";
-            case "211": return "AVATAR_TYPE_4";
-            case "122": return "AVATAR_TYPE_5";
-            case "212": return "AVATAR_TYPE_6";
-            case "221": return "AVATAR_TYPE_7";
-            case "222": return "AVATAR_TYPE_8";
+            case "111": return Avatar.AVATAR_TYPE_1;
+            case "112": return Avatar.AVATAR_TYPE_2;
+            case "121": return Avatar.AVATAR_TYPE_3;
+            case "211": return Avatar.AVATAR_TYPE_4;
+            case "122": return Avatar.AVATAR_TYPE_5;
+            case "212": return Avatar.AVATAR_TYPE_6;
+            case "221": return Avatar.AVATAR_TYPE_7;
+            case "222": return Avatar.AVATAR_TYPE_8;
             default:
+                // 기본값 또는 예외 처리
                 throw new IllegalArgumentException("유효하지 않은 설문 결과 코드입니다: " + answers);
         }
     }

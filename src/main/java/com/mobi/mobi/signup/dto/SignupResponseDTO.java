@@ -25,6 +25,6 @@ public class SignupResponseDTO {
         this.nickname = member.getNickname();
         this.investmentAnswers = member.getInvestmentAnswers();
         this.isPrivacyAgreed = member.getIsPrivacyAgreed();
-        this.avatar = member.getAvatar();
+        this.avatar = (member.getAvatar() != null) ? member.getAvatar().name() : null;
     }
 }

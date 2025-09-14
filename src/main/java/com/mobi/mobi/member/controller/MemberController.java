@@ -2,18 +2,18 @@ package com.mobi.mobi.member.controller;
 
 import com.mobi.mobi.member.dto.MyProfileResponseDTO;
 import com.mobi.mobi.member.dto.NicknameCheckResponseDTO;
+import com.mobi.mobi.member.dto.UpdateAvatarRequestDTO;
+import com.mobi.mobi.member.dto.UpdateDescribeRequestDTO;
 import com.mobi.mobi.member.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.userdetails.User;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "Member API", description = "회원 관련 API")
 @RestController
@@ -32,12 +32,35 @@ public class MemberController {
         return ResponseEntity.ok(responseDTO);
     }
 
-    @GetMapping("/me")
+    @GetMapping("/profile/me")
     @Operation(summary = "내 프로필 조회 API", description = "로그인한 사용자의 프로필 정보를 조회합니다. (JWT 토큰 필요)")
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<MyProfileResponseDTO> getMyProfile(@AuthenticationPrincipal User user) {
         Long memberId = Long.parseLong(user.getUsername());
         MyProfileResponseDTO responseDTO = memberService.getMyProfile(memberId);
+        return ResponseEntity.ok(responseDTO);
+    }
+
+
+    @PatchMapping("/profile/describe")
+    @Operation(summary = "내 프로필 한줄메시지 수정 API", description = "로그인한 사용자의 한줄메시지를 수정합니다. (JWT 토큰 필요)")
+    @SecurityRequirement(name = "bearerAuth")
+    public ResponseEntity<MyProfileResponseDTO> updateProfileDescribe(
+            @AuthenticationPrincipal User user,
+            @Valid @RequestBody UpdateDescribeRequestDTO request) {
+        Long memberId = Long.parseLong(user.getUsername());
+        MyProfileResponseDTO responseDTO = memberService.updateProfileDescribe(memberId, request.getProfileDescribe());
+        return ResponseEntity.ok(responseDTO);
+    }
+
+    @PatchMapping("/profile/avatar")
+    @Operation(summary = "내 프로필 아바타 수정 API", description = "로그인한 사용자의 아바타를 수정합니다. (JWT 토큰 필요)")
+    @SecurityRequirement(name = "bearerAuth")
+    public ResponseEntity<MyProfileResponseDTO> updateAvatar(
+            @AuthenticationPrincipal User user,
+            @Valid @RequestBody UpdateAvatarRequestDTO request) {
+        Long memberId = Long.parseLong(user.getUsername());
+        MyProfileResponseDTO responseDTO = memberService.updateAvatar(memberId, request.getAvatar());
         return ResponseEntity.ok(responseDTO);
     }
 }

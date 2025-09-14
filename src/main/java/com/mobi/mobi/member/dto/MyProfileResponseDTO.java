@@ -30,7 +30,7 @@ public class MyProfileResponseDTO {
         this.email = member.getEmail();
         this.nickname = member.getNickname();
         this.profileImgUrl = member.getProfileImgUrl();
-        this.avatar = member.getAvatar();
+        this.avatar = (member.getAvatar() != null) ? member.getAvatar().name() : null;
         this.profileDescribe = member.getProfileDescribe();
     }
 }

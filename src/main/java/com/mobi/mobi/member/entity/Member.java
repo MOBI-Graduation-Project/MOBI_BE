@@ -1,6 +1,7 @@
 package com.mobi.mobi.member.entity;
 
 import com.mobi.mobi.common.entity.BaseEntity;
+import com.mobi.mobi.member.entity.enums.Avatar;
 import com.mobi.mobi.member.entity.enums.LoginType;
 import jakarta.persistence.*;
 import lombok.*;
@@ -45,7 +46,8 @@ public class Member extends BaseEntity {
     @Column(name = "profile_describe")
     private String profileDescribe;
 
-    private String avatar;
+    @Enumerated(EnumType.STRING) // Enum의 이름을 DB에 문자열로 저장
+    private Avatar avatar;
 
     @Column(name = "district_name")
     private String districtName;
