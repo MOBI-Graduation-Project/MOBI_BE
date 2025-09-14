@@ -25,9 +25,32 @@ public class SignupService {
         member.setInvestmentAnswers(requestDTO.getInvestmentAnswers());
         member.setIsPrivacyAgreed(requestDTO.getIsPrivacyAgreed());
 
-        // 3. @Transactional 어노테이션에 의해 메서드가 종료될 때 변경된 내용이 DB에 자동으로 저장됩니다 (더티 체킹).
 
-        // 4. 업데이트된 회원 정보를 DTO로 변환하여 반환합니다.
+        member.setNickname(requestDTO.getNickname());
+        member.setInvestmentAnswers(requestDTO.getInvestmentAnswers());
+        member.setIsPrivacyAgreed(requestDTO.getIsPrivacyAgreed());
+
+        // 아바타/프로필
+        String avatarType = determineAvatar(member.getInvestmentAnswers());
+        member.setAvatar(avatarType);
+
         return new SignupResponseDTO(member);
+    }
+
+
+    //아바타결정
+    private String determineAvatar(String answers) {
+        switch (answers) {
+            case "111": return "AVATAR_TYPE_1";
+            case "112": return "AVATAR_TYPE_2";
+            case "121": return "AVATAR_TYPE_3";
+            case "211": return "AVATAR_TYPE_4";
+            case "122": return "AVATAR_TYPE_5";
+            case "212": return "AVATAR_TYPE_6";
+            case "221": return "AVATAR_TYPE_7";
+            case "222": return "AVATAR_TYPE_8";
+            default:
+                throw new IllegalArgumentException("유효하지 않은 설문 결과 코드입니다: " + answers);
+        }
     }
 }
