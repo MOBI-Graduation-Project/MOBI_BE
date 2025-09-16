@@ -1,6 +1,7 @@
 package com.mobi.mobi.friend.controller;
 
-import com.mobi.mobi.friend.dto.FriendshipDTO;
+import com.mobi.mobi.friend.dto.FriendResponseDTO;
+import com.mobi.mobi.friend.dto.FriendshipResponseDTO;
 import com.mobi.mobi.friend.service.FriendService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -22,50 +23,45 @@ public class FriendController {
 
     @PostMapping("/request")
     @Operation(summary = "친구 요청 보내기 API", description = "다른 사용자에게 친구 요청을 보냅니다.")
-    public ResponseEntity<Void> sendFriendRequest(
-            @AuthenticationPrincipal User user,
-            @RequestParam Long toMemberId) {
+    public ResponseEntity<FriendResponseDTO> sendFriendRequest(
+            @AuthenticationPrincipal User user, @RequestParam Long toMemberId) {
         Long fromMemberId = Long.parseLong(user.getUsername());
-        friendService.sendFriendRequest(fromMemberId, toMemberId);
-        return ResponseEntity.ok().build();
+        FriendResponseDTO response = friendService.sendFriendRequest(fromMemberId, toMemberId);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/accept")
     @Operation(summary = "친구 요청 수락 API", description = "받은 친구 요청을 수락합니다.")
-    public ResponseEntity<Void> acceptFriendRequest(
-            @AuthenticationPrincipal User user,
-            @RequestParam Long fromMemberId) {
+    public ResponseEntity<FriendResponseDTO> acceptFriendRequest(
+            @AuthenticationPrincipal User user, @RequestParam Long fromMemberId) {
         Long toMemberId = Long.parseLong(user.getUsername());
-        friendService.acceptFriendRequest(fromMemberId, toMemberId);
-        return ResponseEntity.ok().build();
+        FriendResponseDTO response = friendService.acceptFriendRequest(fromMemberId, toMemberId);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/refuse")
     @Operation(summary = "친구 요청 거절 API", description = "받은 친구 요청을 거절합니다.")
-    public ResponseEntity<Void> declineFriendRequest(
-            @AuthenticationPrincipal User user,
-            @RequestParam Long fromMemberId) {
+    public ResponseEntity<FriendResponseDTO> declineFriendRequest(
+            @AuthenticationPrincipal User user, @RequestParam Long fromMemberId) {
         Long toMemberId = Long.parseLong(user.getUsername());
-        friendService.declineFriendRequest(fromMemberId, toMemberId);
-        return ResponseEntity.ok().build();
+        FriendResponseDTO response = friendService.declineFriendRequest(fromMemberId, toMemberId);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("")
     @Operation(summary = "친구 목록 및 받은 요청 목록 조회 API", description = "나의 친구 목록과 내가 받은 친구 요청 목록을 함께 조회합니다.")
-    public ResponseEntity<FriendshipDTO> getFriendships(@AuthenticationPrincipal User user) {
+    public ResponseEntity<FriendshipResponseDTO> getFriendships(@AuthenticationPrincipal User user) {
         Long memberId = Long.parseLong(user.getUsername());
-        FriendshipDTO response = friendService.getFriendships(memberId);
+        FriendshipResponseDTO response = friendService.getFriendships(memberId);
         return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{friendId}")
     @Operation(summary = "친구 삭제 API", description = "친구 관계를 삭제합니다. friendId는 친구의 memberId입니다.")
     public ResponseEntity<Void> deleteFriend(
-            @AuthenticationPrincipal User user,
-            @PathVariable Long friendId) {
+            @AuthenticationPrincipal User user, @PathVariable Long friendId) {
         Long memberId = Long.parseLong(user.getUsername());
         friendService.deleteFriend(memberId, friendId);
-        return ResponseEntity.noContent().build(); // 204 No Content
+        return ResponseEntity.noContent().build();
     }
-
 }

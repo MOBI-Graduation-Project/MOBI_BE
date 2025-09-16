@@ -10,13 +10,10 @@ public class FriendResponseDTO {
 
     @Schema(description = "친구 관계 ID")
     private final Long friendId;
-
     @Schema(description = "요청 보낸 사용자 닉네임")
     private final String fromUserNickname;
-
     @Schema(description = "요청 받은 사용자 닉네임")
     private final String toUserNickname;
-
     @Schema(description = "친구 관계 상태")
     private final FriendStatus status;
 
