@@ -27,7 +27,7 @@ public class Member extends BaseEntity {
     @Column(nullable = false, unique = true, length = 20)
     private String username;
 
-    @Column(nullable = false, length = 20)
+    @Column(unique=true, length = 20)
     private String nickname;
 
     @Column
@@ -37,7 +37,7 @@ public class Member extends BaseEntity {
     @Column(name = "login_type", nullable = false)
     private LoginType loginType;
 
-    @Column(name = "is_privacy_agreed", nullable = false)
+    @Column(name = "is_privacy_agreed")
     private Boolean isPrivacyAgreed;
 
     @Column(name = "profile_img_url")

@@ -62,7 +62,8 @@ public class OauthService {
                     .profileImgUrl(profileImgUrl)
                     .loginType(LoginType.GOOGLE)
                     .build();
-            newMember.setIsPrivacyAgreed(false);
+            newMember.setNickname(name);
+            newMember.setIsPrivacyAgreed(false); // 약관 동의는 나중에 받으므로 false로 초기화
             return memberRepository.save(newMember);
         });
 
