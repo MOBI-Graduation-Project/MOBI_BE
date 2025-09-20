@@ -50,9 +50,9 @@ public class FriendshipResponseDTO {
         private final Long fromMemberId;
         @Schema(description = "요청 보낸 사람의 닉네임")
         private final String fromMemberNickname;
-        @Schema(description = "친구의 프로필 사진")
+        @Schema(description = "요청 보낸 사람의 프로필 사진")
         private final String fromMemberProfileImgUrl;
-        @Schema(description = "친구의 한줄 메시지")
+        @Schema(description = "요청 보낸 사람의 한줄 메시지")
         private final String fromMemberProfileDescribe;
 
         public FriendRequestInfo(Member member) {

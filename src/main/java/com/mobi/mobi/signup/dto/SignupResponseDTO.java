@@ -20,6 +20,7 @@ public class SignupResponseDTO {
     private final String avatar;
 
     public SignupResponseDTO(Member member) {
+
         this.memberId = member.getId();
         this.email = member.getEmail();
         this.nickname = member.getNickname();

@@ -14,6 +14,9 @@ public class GoogleLoginResponseDTO {
     @Schema(description = "Mobi 서비스 Access Token")
     private final String accessToken;
 
+    @Schema(description = "Mobi 서비스 Refresh Token")
+    private String refreshToken;
+
     private final MemberInfo member;
 
     @Getter
@@ -40,9 +43,10 @@ public class GoogleLoginResponseDTO {
 
 
     @Builder
-    public GoogleLoginResponseDTO(Boolean isNewMember, String accessToken, Member member) {
+    public GoogleLoginResponseDTO(Boolean isNewMember, String accessToken, String refreshToken, Member member) {
         this.isNewMember = isNewMember;
         this.accessToken = accessToken;
+        this.refreshToken = refreshToken;
         this.member = new MemberInfo(member);
     }
 }
