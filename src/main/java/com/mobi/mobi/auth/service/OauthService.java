@@ -1,5 +1,7 @@
 package com.mobi.mobi.auth.service;
 
+import com.mobi.mobi.apiPayload.handler.GeneralException;
+import com.mobi.mobi.apiPayload.status.ErrorStatus;
 import com.mobi.mobi.auth.dto.GoogleLoginResponseDTO;
 import com.mobi.mobi.config.security.jwt.JwtTokenProvider;
 import com.mobi.mobi.member.entity.Member;
@@ -44,15 +46,15 @@ public class OauthService {
         String decodedCode = URLDecoder.decode(code, StandardCharsets.UTF_8);
 
         Map<String, Object> tokenResponse = getGoogleAccessToken(decodedCode);
-        String accessToken = (String) tokenResponse.get("access_token");
-        Map<String, Object> userInfo = getGoogleUserInfo(accessToken);
+        String googleAccessToken = (String) tokenResponse.get("access_token");
+        Map<String, Object> userInfo = getGoogleUserInfo(googleAccessToken);
 
         String email = (String) userInfo.get("email");
         String name = (String) userInfo.get("name");
         String profileImgUrl = (String) userInfo.get("picture");
 
         Optional<Member> memberOptional = memberRepository.findByEmail(email);
-        boolean isNewMember = memberOptional.isEmpty();
+
         Member member = memberOptional.map(existingMember -> {
             return existingMember.update(name, profileImgUrl);
         }).orElseGet(() -> {
@@ -63,15 +65,38 @@ public class OauthService {
                     .loginType(LoginType.GOOGLE)
                     .build();
             newMember.setNickname(name);
-            newMember.setIsPrivacyAgreed(false); // 약관 동의는 나중에 받으므로 false로 초기화
+            newMember.setIsPrivacyAgreed(false);
             return memberRepository.save(newMember);
         });
 
-        String serviceAccessToken = jwtTokenProvider.createToken(member.getId().toString());
+        // isSignedUp이 false이면, 추가 정보 입력이 필요한 신규 회원으로 간주
+        boolean isNewMember = !member.isSignedUp();
+
+        // 기존 사용자가 재로그인한 경우, 이름과 프로필 사진을 최신 정보로 업데이트
+        if (!isNewMember) {
+            member.update(name, profileImgUrl);
+        }
+
+        String accessToken = jwtTokenProvider.createAccessToken(member.getId().toString());
+        String refreshToken = jwtTokenProvider.createRefreshToken(member.getId().toString());
+        member.setRefreshToken(refreshToken);
 
         return GoogleLoginResponseDTO.builder()
-                .isNewMember(isNewMember).accessToken(serviceAccessToken).member(member)
+                .isNewMember(isNewMember)
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .member(member)
                 .build();
+    }
+
+    @Transactional
+    public void logout(Long memberId) {
+        // 1. memberId를 기반으로 사용자를 찾습니다.
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.MEMBER_NOT_FOUND));
+
+        // 2. 해당 사용자의 리프레시 토큰을 DB에서 삭제(null로 업데이트)합니다.
+        member.clearRefreshToken();
     }
 
 

@@ -1,5 +1,7 @@
 package com.mobi.mobi.signup.controller;
 
+import com.mobi.mobi.apiPayload.ApiResponse;
+import com.mobi.mobi.apiPayload.status.SuccessStatus;
 import com.mobi.mobi.signup.dto.SignupRequestDTO;
 import com.mobi.mobi.signup.dto.SignupResponseDTO;
 import com.mobi.mobi.signup.service.SignupService;
@@ -27,14 +29,16 @@ public class SignupController {
 
     @PostMapping("/complete")
     @Operation(summary = "회원가입 완료 API", description = "닉네임, 설문, 약관 동의 결과를 받아 회원가입을 최종 완료합니다. (JWT 토큰 필요)")
-    public ResponseEntity<SignupResponseDTO> completeSignup(
-            @AuthenticationPrincipal User user, // JWT 토큰에서 사용자 정보(memberId)를 가져옵니다.
-            @Valid @RequestBody SignupRequestDTO requestDTO) { // @Valid로 DTO 유효성 검사
 
-        // Spring Security에서 principal은 사용자의 식별자(여기서는 memberId)를 의미합니다.
+    public ApiResponse<SignupResponseDTO> completeSignup(
+            @AuthenticationPrincipal User user,
+            @Valid @RequestBody SignupRequestDTO requestDTO) {
+
+
         Long memberId = Long.parseLong(user.getUsername());
 
         SignupResponseDTO responseDTO = signupService.completeSignup(memberId, requestDTO);
-        return ResponseEntity.ok(responseDTO);
+
+        return ApiResponse.onSuccess(SuccessStatus._OK, responseDTO);
     }
 }

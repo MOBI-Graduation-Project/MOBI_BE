@@ -30,6 +30,9 @@ public class SignupService {
         Avatar determinedAvatar = determineAvatar(requestDTO.getInvestmentAnswers());
         member.setAvatar(determinedAvatar);
 
+        //isSignedUp 필드를 true로 설정
+        member.completeSignup();
+
         return new SignupResponseDTO(member);
     }
 
