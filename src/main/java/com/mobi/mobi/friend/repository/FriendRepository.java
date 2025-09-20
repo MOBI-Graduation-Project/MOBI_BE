@@ -5,7 +5,6 @@ import com.mobi.mobi.friend.entity.enums.FriendStatus;
 import com.mobi.mobi.member.entity.Member;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,4 +19,6 @@ public interface FriendRepository extends JpaRepository<Friend, Long> {
     // 나에게 온 친구 요청 목록에서 요청자 Member 목록을 직접 조회 (받은 요청 목록용)
     @Query("SELECT f.fromMember FROM Friend f WHERE f.toMember = :toMember AND f.status = 'PENDING'")
     List<Member> findRequestersByToMember(Member toMember);
+
+    boolean existsByFromMemberAndToMemberAndStatus(Member fromMember, Member toMember, FriendStatus status);
 }

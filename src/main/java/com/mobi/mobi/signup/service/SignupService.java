@@ -1,5 +1,7 @@
 package com.mobi.mobi.signup.service;
 
+import com.mobi.mobi.apiPayload.handler.MemberHandler;
+import com.mobi.mobi.apiPayload.status.ErrorStatus;
 import com.mobi.mobi.member.entity.Member;
 import com.mobi.mobi.member.entity.enums.Avatar;
 import com.mobi.mobi.member.repository.MemberRepository;
@@ -17,11 +19,11 @@ public class SignupService {
     private final MemberRepository memberRepository;
 
     public SignupResponseDTO completeSignup(Long memberId, SignupRequestDTO requestDTO) {
-        // 1. JWT 토큰에서 추출한 memberId로 회원을 찾습니다.
+        // 1. JWT 토큰에서 추출한 memberId로 회원 찾음
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다. ID: " + memberId));
+                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
-        // 2. 전달받은 정보로 Member 엔티티의 필드를 업데이트합니다.
+        // 2. 전달받은 정보로 Member 엔티티의 필드를 업데이트
         member.setNickname(requestDTO.getNickname());
         member.setInvestmentAnswers(requestDTO.getInvestmentAnswers());
         member.setIsPrivacyAgreed(requestDTO.getIsPrivacyAgreed());
