@@ -33,7 +33,9 @@ public enum ErrorStatus implements BaseErrorCode {
     SEARCH_QUERY_REQUIRED(HttpStatus.BAD_REQUEST, "FRIEND4001", "검색어를 입력해주세요."),
     SEARCH_QUERY_TOO_SHORT(HttpStatus.BAD_REQUEST, "FRIEND4002", "검색어는 1자 이상 입력해주세요."),
 
-
+    // 채팅 관련 에러
+    CHAT_ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "CHAT4410","채팅방이 없습니다."),
+    ALREADY_IN_CHAT_ROOM(HttpStatus.ALREADY_REPORTED,"CHAT 4411","이미 채팅방에 참여중입니다."),
     // 테스트 용 응답
     TEST_FAIL(HttpStatus.BAD_REQUEST, "TEST400", "사용자 정의 실패 응답입니다."),
 
