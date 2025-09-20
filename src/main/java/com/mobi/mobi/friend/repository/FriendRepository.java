@@ -17,12 +17,7 @@ public interface FriendRepository extends JpaRepository<Friend, Long> {
     // 내가 보낸 친구 요청 중 '수락된' 목록 조회 (친구 목록용)
     List<Friend> findByFromMemberAndStatus(Member fromMember, FriendStatus status);
 
-    // 내가 포함된 모든 친구 관계에서 상대방 Member 목록을 직접 조회 (친구 목록용)
-    @Query("SELECT CASE WHEN f.fromMember = :member THEN f.toMember ELSE f.fromMember END " +
-            "FROM Friend f WHERE (f.fromMember = :member OR f.toMember = :member) AND f.status = 'ACCEPTED'")
-    List<Member> findFriendsByMember(@Param("member") Member member);
-
     // 나에게 온 친구 요청 목록에서 요청자 Member 목록을 직접 조회 (받은 요청 목록용)
-    @Query("SELECT f.fromMember FROM Friend f WHERE f.toMember = :member AND f.status = 'PENDING'")
-    List<Member> findRequestersByToMember(@Param("member") Member member);
+    @Query("SELECT f.fromMember FROM Friend f WHERE f.toMember = :toMember AND f.status = 'PENDING'")
+    List<Member> findRequestersByToMember(Member toMember);
 }

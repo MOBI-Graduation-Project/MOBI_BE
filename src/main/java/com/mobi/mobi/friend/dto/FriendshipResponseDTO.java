@@ -23,6 +23,7 @@ public class FriendshipResponseDTO {
 
     @Getter
     public static class FriendInfo {
+
         @Schema(description = "친구의 Member ID")
         private final Long memberId;
         @Schema(description = "친구의 닉네임")
