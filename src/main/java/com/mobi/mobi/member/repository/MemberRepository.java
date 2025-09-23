@@ -1,5 +1,6 @@
 package com.mobi.mobi.member.repository;
 
+import com.mobi.mobi.friend.entity.enums.FriendStatus;
 import com.mobi.mobi.member.entity.Member;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

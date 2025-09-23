@@ -27,7 +27,7 @@ public class Member extends BaseEntity {
     @Column(nullable = false, unique = true, length = 20)
     private String username;
 
-    @Column(nullable = false, length = 20)
+    @Column(unique=true, length = 20)
     private String nickname;
 
     @Column
@@ -37,7 +37,7 @@ public class Member extends BaseEntity {
     @Column(name = "login_type", nullable = false)
     private LoginType loginType;
 
-    @Column(name = "is_privacy_agreed", nullable = false)
+    @Column(name = "is_privacy_agreed")
     private Boolean isPrivacyAgreed;
 
     @Column(name = "profile_img_url")
@@ -58,12 +58,24 @@ public class Member extends BaseEntity {
     @Column(name = "investment_answers")
     private String investmentAnswers;
 
+    @Column(name = "is_signed_up", nullable = false)
+    private boolean isSignedUp = false;
+
+    //token관련
+    @Column(name = "refresh_token")
+    private String refreshToken;
+
+    public void clearRefreshToken() {
+        this.refreshToken = null;
+    }
+
     @Builder
     public Member(String username, String email, String profileImgUrl, LoginType loginType) {
         this.username = username;
         this.email = email;
         this.profileImgUrl = profileImgUrl;
         this.loginType = loginType;
+        this.isSignedUp = false;
     }
 
     // 구글 프로필 정보(이름, 사진)가 변경될 경우 업데이트하는 메서드
@@ -71,5 +83,10 @@ public class Member extends BaseEntity {
         this.username = username;
         this.profileImgUrl = profileImgUrl;
         return this;
+    }
+
+    //최종 회원가입 완료
+    public void completeSignup() {
+        this.isSignedUp = true;
     }
 }

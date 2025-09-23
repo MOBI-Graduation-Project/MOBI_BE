@@ -24,19 +24,24 @@ import java.util.stream.Collectors;
 public class JwtTokenProvider {
 
     private final SecretKey key;
-    private final long accessTokenValidityInSeconds;
+    private final long accessTokenValidityInMilliseconds;
+    private final long refreshTokenValidityInMilliseconds;
+
 
     public JwtTokenProvider(
             @Value("${jwt.secret}") String secretKey,
-            @Value("${jwt.access-token-validity-in-seconds}") long accessTokenValidityInSeconds) {
+            @Value("${jwt.access-token-validity-in-seconds}") long accessTokenValidityInSeconds,
+            @Value("${jwt.refresh-token-validity-in-seconds}") long refreshTokenValidityInSeconds) {
         this.key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
-        this.accessTokenValidityInSeconds = accessTokenValidityInSeconds * 1000;
+        this.accessTokenValidityInMilliseconds = accessTokenValidityInSeconds * 1000;
+        this.refreshTokenValidityInMilliseconds = refreshTokenValidityInSeconds * 1000; // 추가
     }
 
-    public String createToken(String memberId) {
+    //accessToken
+    public String createAccessToken(String memberId) {
         Claims claims = Jwts.claims().setSubject(memberId);
         Date now = new Date();
-        Date validity = new Date(now.getTime() + accessTokenValidityInSeconds);
+        Date validity = new Date(now.getTime() + accessTokenValidityInMilliseconds);
 
         return Jwts.builder()
                 .setClaims(claims)
@@ -45,6 +50,21 @@ public class JwtTokenProvider {
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
+
+    // refreshToken
+    public String createRefreshToken(String memberId) {
+        Claims claims = Jwts.claims().setSubject(memberId);
+        Date now = new Date();
+        Date validity = new Date(now.getTime() + refreshTokenValidityInMilliseconds);
+
+        return Jwts.builder()
+                .setClaims(claims)
+                .setIssuedAt(now)
+                .setExpiration(validity)
+                .signWith(key, SignatureAlgorithm.HS256)
+                .compact();
+    }
+
 
     public Authentication getAuthentication(String accessToken) {
         Claims claims = parseClaims(accessToken);
