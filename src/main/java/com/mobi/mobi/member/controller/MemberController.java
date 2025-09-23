@@ -15,7 +15,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.security.core.userdetails.User;
 
 @Tag(name = "Member API", description = "회원 관련 API")
 @RestController
@@ -38,11 +37,10 @@ public class MemberController {
     @Operation(summary = "사용자 프로필 조회 API", description = "URL에 포함된 memberId를 사용하여 특정 사용자의 프로필 정보를 조회합니다.")
     @SecurityRequirement(name = "bearerAuth")
     public ApiResponse<MemberProfileResponseDTO> getProfile(
-            @AuthenticationPrincipal User user,
-            @Parameter(description = "조회할 사용자의 ID") @PathVariable("memberId") Long profileId // 프로필 주인 ID
+            @AuthenticationPrincipal String viewerId, // 수정됨
+            @Parameter(description = "조회할 사용자의 ID") @PathVariable("memberId") Long profileId
     ) {
-        Long viewerId = Long.parseLong(user.getUsername());
-        MemberProfileResponseDTO responseDTO = memberService.getProfile(viewerId, profileId);
+        MemberProfileResponseDTO responseDTO = memberService.getProfile(Long.parseLong(viewerId), profileId); // 수정됨
         return ApiResponse.onSuccess(SuccessStatus._OK, responseDTO);
     }
 
@@ -51,10 +49,9 @@ public class MemberController {
     @Operation(summary = "내 프로필 한줄메시지 수정 API", description = "로그인한 사용자의 한줄메시지를 수정합니다. (JWT 토큰 필요)")
     @SecurityRequirement(name = "bearerAuth")
     public ApiResponse<MemberProfileResponseDTO> updateProfileDescribe(
-            @AuthenticationPrincipal User user,
+            @AuthenticationPrincipal String memberId, // 수정됨
             @Valid @RequestBody UpdateDescribeRequestDTO request) {
-        Long memberId = Long.parseLong(user.getUsername());
-        MemberProfileResponseDTO responseDTO = memberService.updateProfileDescribe(memberId, request.getProfileDescribe());
+        MemberProfileResponseDTO responseDTO = memberService.updateProfileDescribe(Long.parseLong(memberId), request.getProfileDescribe()); // 수정됨
         return ApiResponse.onSuccess(SuccessStatus._OK, responseDTO);
     }
 
@@ -62,10 +59,9 @@ public class MemberController {
     @Operation(summary = "내 프로필 아바타 수정 API", description = "로그인한 사용자의 아바타를 수정합니다. (JWT 토큰 필요)")
     @SecurityRequirement(name = "bearerAuth")
     public ApiResponse<MemberProfileResponseDTO> updateAvatar(
-            @AuthenticationPrincipal User user,
+            @AuthenticationPrincipal String memberId, // 수정됨
             @Valid @RequestBody UpdateAvatarRequestDTO request) {
-        Long memberId = Long.parseLong(user.getUsername());
-        MemberProfileResponseDTO responseDTO = memberService.updateAvatar(memberId, request.getAvatar());
+        MemberProfileResponseDTO responseDTO = memberService.updateAvatar(Long.parseLong(memberId), request.getAvatar()); // 수정됨
         return ApiResponse.onSuccess(SuccessStatus._OK, responseDTO);
     }
 }
