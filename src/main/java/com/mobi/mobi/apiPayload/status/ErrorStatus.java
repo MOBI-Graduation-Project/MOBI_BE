@@ -33,6 +33,16 @@ public enum ErrorStatus implements BaseErrorCode {
     SEARCH_QUERY_REQUIRED(HttpStatus.BAD_REQUEST, "FRIEND4001", "검색어를 입력해주세요."),
     SEARCH_QUERY_TOO_SHORT(HttpStatus.BAD_REQUEST, "FRIEND4002", "검색어는 1자 이상 입력해주세요."),
 
+    // 채팅 관련 에러
+    CHAT_ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "CHAT4001","채팅방이 없습니다."),
+    ALREADY_IN_CHAT_ROOM(HttpStatus.ALREADY_REPORTED,"CHAT 4002","이미 채팅방에 참여중입니다."),
+
+    //마이데이터 관련 에러
+    INVALID_KOREAN_STOCK_CODE(HttpStatus.BAD_REQUEST, "MYDATA4001", "한국 주식 코드는 6자리 숫자여야 합니다."),
+    INVALID_ENGLISH_STOCK_CODE(HttpStatus.BAD_REQUEST, "MYDATA4002", "미국 주식 코드는 1~16자리의 대문자 알파벳(티커)이어야 합니다."),
+    MYDATA_NOT_FOUND(HttpStatus.NOT_FOUND, "MYDATA4003", "해당 주식 정보를 찾을 수 없습니다."),
+    MYDATA_ALREADY_EXISTS(HttpStatus.CONFLICT, "MYDATA4004", "이미 등록된 주식입니다."),
+
 
     // 테스트 용 응답
     TEST_FAIL(HttpStatus.BAD_REQUEST, "TEST400", "사용자 정의 실패 응답입니다."),
