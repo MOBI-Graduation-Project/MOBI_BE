@@ -31,13 +31,10 @@ public class SignupController {
     @Operation(summary = "회원가입 완료 API", description = "닉네임, 설문, 약관 동의 결과를 받아 회원가입을 최종 완료합니다. (JWT 토큰 필요)")
 
     public ApiResponse<SignupResponseDTO> completeSignup(
-            @AuthenticationPrincipal User user,
+            @AuthenticationPrincipal String memberId,
             @Valid @RequestBody SignupRequestDTO requestDTO) {
 
-
-        Long memberId = Long.parseLong(user.getUsername());
-
-        SignupResponseDTO responseDTO = signupService.completeSignup(memberId, requestDTO);
+        SignupResponseDTO responseDTO = signupService.completeSignup(Long.parseLong(memberId), requestDTO);
 
         return ApiResponse.onSuccess(SuccessStatus._OK, responseDTO);
     }

@@ -79,7 +79,7 @@ public class ChatService {
     }
 
     @Transactional
-    public ChatMessage saveMessage(ChatMessageDTO messageDTO) {
+    public ChatMessageDTO saveMessageAndGetDTO(ChatMessageDTO messageDTO) { // 메서드 이름 변경 및 반환 타입 변경
         Member sender = findMemberById(messageDTO.getSenderId());
         ChatRoom room = findRoomById(messageDTO.getRoomId());
 
@@ -88,7 +88,10 @@ public class ChatService {
                 .sender(sender)
                 .content(messageDTO.getContent())
                 .build();
-        return chatMessageRepository.save(message);
+
+        ChatMessage savedMessage = chatMessageRepository.save(message);
+
+        return ChatMessageDTO.fromEntity(savedMessage);
     }
 
     @Transactional(readOnly = true)
@@ -108,6 +111,12 @@ public class ChatService {
     private ChatRoom findRoomById(Long roomId) {
         return chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.CHAT_ROOM_NOT_FOUND));
+    }
+
+    @Transactional
+    public void markMessagesAsRead(Long roomId, Long readerId) {
+        // 해당 채팅방에, 내가 보내지 않은 모든 메시지를 읽음 처리
+        chatMessageRepository.markMessagesAsRead(roomId, readerId);
     }
 }
 

@@ -9,7 +9,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,10 +27,9 @@ public class ChatRestController {
     @PostMapping("/room")
     @Operation(summary = "채팅방 생성 또는 조회 API", description = "두 사용자 간의 1:1 채팅방 ID를 조회하거나, 없으면 새로 생성합니다.")
     public ApiResponse<Long> getOrCreateRoom(
-            @AuthenticationPrincipal User user,
+            @AuthenticationPrincipal String myId,
             @RequestParam Long otherMemberId) {
-        Long myId = Long.parseLong(user.getUsername());
-        Long roomId = chatService.getOrCreateRoom(myId, otherMemberId);
+        Long roomId = chatService.getOrCreateRoom(Long.parseLong(myId), otherMemberId);
         return ApiResponse.onSuccess(SuccessStatus._OK, roomId);
     }
 
