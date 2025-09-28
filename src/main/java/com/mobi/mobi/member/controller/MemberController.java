@@ -40,7 +40,17 @@ public class MemberController {
             @AuthenticationPrincipal String viewerId, // 수정됨
             @Parameter(description = "조회할 사용자의 ID") @PathVariable("memberId") Long profileId
     ) {
-        MemberProfileResponseDTO responseDTO = memberService.getProfile(Long.parseLong(viewerId), profileId); // 수정됨
+        MemberProfileResponseDTO responseDTO = memberService.getProfile(Long.parseLong(viewerId), profileId);
+        return ApiResponse.onSuccess(SuccessStatus._OK, responseDTO);
+    }
+
+    @GetMapping("/profile/my")
+    @Operation(summary = "내 프로필 조회 API", description = "현재 로그인된 사용자의 프로필을 조회합니다. (JWT 토큰 필요)")
+    @SecurityRequirement(name = "bearerAuth")
+    public ApiResponse<MemberProfileResponseDTO> getMyProfile(
+            @AuthenticationPrincipal String memberId
+    ) {
+        MemberProfileResponseDTO responseDTO = memberService.getMyProfile(Long.parseLong(memberId));
         return ApiResponse.onSuccess(SuccessStatus._OK, responseDTO);
     }
 

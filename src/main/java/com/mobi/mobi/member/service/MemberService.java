@@ -27,30 +27,30 @@ public class MemberService {
         return new NicknameCheckResponseDTO(nickname, isDuplicated);
     }
 
+    public MemberProfileResponseDTO getMyProfile(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
+        // 내 프로필이므로 관계는 항상 SELF 입니다.
+        return MemberProfileResponseDTO.of(member, RelationStatus.SELF);
+    }
+
     public MemberProfileResponseDTO getProfile(Long viewerId, Long profileId) {
-        // 프로필의 주인 사용자 정보를 조회합니다.
+        // 내 프로필을 조회하는 경우, 새로 만든 API 사용 유도
+        if (viewerId.equals(profileId)) {
+            return getMyProfile(viewerId);
+        }
+
+        // 다른 사용자 프로필 조회 로직
         Member profileOwner = memberRepository.findById(profileId)
                 .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
-        RelationStatus status;
-        if (viewerId.equals(profileId)) {
-            // 1. 내 프로필을 조회하는 경우
-            status = RelationStatus.SELF;
-        } else {
-            // 2. 다른 사람 프로필을 조회하는 경우
-            Member viewer = memberRepository.findById(viewerId)
-                    .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND)); // 로그인한 사용자 정보 조회
+        Member viewer = memberRepository.findById(viewerId)
+                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
 
-            // 양방향으로 친구 관계인지 확인
-            boolean isFriend = friendRepository.existsByFromMemberAndToMemberAndStatus(viewer, profileOwner, FriendStatus.ACCEPTED) ||
-                    friendRepository.existsByFromMemberAndToMemberAndStatus(profileOwner, viewer, FriendStatus.ACCEPTED);
+        boolean isFriend = friendRepository.existsByFromMemberAndToMemberAndStatus(viewer, profileOwner, FriendStatus.ACCEPTED) ||
+                friendRepository.existsByFromMemberAndToMemberAndStatus(profileOwner, viewer, FriendStatus.ACCEPTED);
 
-            if (isFriend) {
-                status = RelationStatus.FRIEND;
-            } else {
-                status = RelationStatus.STRANGER;
-            }
-        }
+        RelationStatus status = isFriend ? RelationStatus.FRIEND : RelationStatus.STRANGER;
 
         return MemberProfileResponseDTO.of(profileOwner, status);
     }
