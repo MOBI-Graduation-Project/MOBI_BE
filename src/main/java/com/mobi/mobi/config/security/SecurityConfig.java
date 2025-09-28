@@ -35,6 +35,8 @@ public class SecurityConfig {
                         .requestMatchers("/auth/**").permitAll()
                         // Swagger UI 접근 허용
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        // 웹소켓 연결 경로에 대한 보안 검사를 비활성화
+                        .requestMatchers("/ws-chat/**").permitAll()
                         // 그 외 다른 모든 요청은 일단 허용 (나중에 필요에 따라 인증 설정 추가)
                         .anyRequest().permitAll()
                 )

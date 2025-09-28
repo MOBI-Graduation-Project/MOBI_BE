@@ -14,15 +14,16 @@ public class WebSocketSecurityConfig extends AbstractSecurityWebSocketMessageBro
     @Override
     protected void configureInbound(MessageSecurityMetadataSourceRegistry messages) {
         messages
-                // STOMP의 CONNECT 요청 등은 누구나 허용
+                // STOMP의 CONNECT, HEARTBEAT 등 기본 프로토콜 요청은 누구나 허용
                 .simpTypeMatchers(SimpMessageType.CONNECT, SimpMessageType.HEARTBEAT, SimpMessageType.UNSUBSCRIBE, SimpMessageType.DISCONNECT).permitAll()
-                // /sub/** 및 /pub/** 목적지는 인증된 사용자만 접근 가능
-                .simpDestMatchers("/sub/**", "/pub/**").authenticated()
+
+                // '/pub/**', '/sub/**' 목적지는 'ROLE_USER' 권한을 가진 사용자만 접근 가능하도록 명시
+                .simpDestMatchers("/sub/**", "/pub/**").hasRole("USER")
                 // 그 외 모든 메시지는 거부 (필요에 따라 주석 처리하거나 다른 규칙으로 변경 가능)
                 .anyMessage().denyAll();
     }
 
-    // CSRF 보호를 비활성화합니다. (이전 답변 참고)
+    // CSRF 보호를 비활성화
     @Override
     protected boolean sameOriginDisabled() {
         return true;
