@@ -74,10 +74,9 @@ public class JwtTokenProvider {
                         .map(SimpleGrantedAuthority::new)
                         .collect(Collectors.toList());
 
-        //userdetails 객체 대신 id를 직접 사용
-        //UserDetails principal = new User(claims.getSubject(), "", authorities);
-        //return new UsernamePasswordAuthenticationToken(principal, "", authorities);
-        return new UsernamePasswordAuthenticationToken(claims.getSubject(), "", authorities);
+        UserDetails principal = new User(claims.getSubject(), "", authorities);
+
+        return new UsernamePasswordAuthenticationToken(principal, "", authorities);
     }
 
     public boolean validateToken(String token) {

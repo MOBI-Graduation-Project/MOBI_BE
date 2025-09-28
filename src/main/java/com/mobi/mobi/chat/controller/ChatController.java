@@ -8,6 +8,7 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Controller;
 
 import java.security.Principal;
@@ -23,16 +24,18 @@ public class ChatController {
     private final SimpMessageSendingOperations messagingTemplate;
     private final ChatService chatService;
 
-    // 클라이언트가 /pub/chat/message 로 메시지를 보내면 이 메서드가 호출된다
+    // 클라이언트가 /pub/chat/message 로 메시지를 보내면 이 메서드가 호출됨
     @MessageMapping("/chat/message")
-    public void message(ChatMessageDTO message, Principal principal) {
+    public void message(ChatMessageDTO message, @AuthenticationPrincipal User user) {
 
-        if (principal == null) {
-            log.error("Principal is null. User may not be authenticated.");
+        if (user == null) {
+            log.error("User is null. User may not be authenticated.");
             return; // 또는 예외 처리
         }
 
-        String memberId = principal.getName();
+        // User 객체에서 사용자 ID를 가져옴
+        String memberId = user.getUsername();
+
         // 클라이언트가 보낸 senderId를 무시하고, 인증된 사용자의 ID를 강제로 설정
         message.setSenderId(Long.parseLong(memberId));
 
