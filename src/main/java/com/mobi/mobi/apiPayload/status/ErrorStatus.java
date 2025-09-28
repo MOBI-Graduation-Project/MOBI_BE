@@ -47,7 +47,8 @@ public enum ErrorStatus implements BaseErrorCode {
     // 테스트 용 응답
     TEST_FAIL(HttpStatus.BAD_REQUEST, "TEST400", "사용자 정의 실패 응답입니다."),
 
-    ;
+
+    STOCK_NOT_FOUND(HttpStatus.NOT_FOUND, "STOCK4001", "해당 주식을 찾을 수 없습니다.");
 
     private final HttpStatus httpStatus;
     private final String code;

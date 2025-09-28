@@ -53,6 +53,9 @@ dependencies {
 	// RestTemplate 대신 WebClient 사용을 위한 WebFlux 의존성
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
+    // OpenCSV for CSV file handling, 주식 종목들의 정보를 담은 csv파일을 불러오는 의존성
+    implementation 'com.opencsv:opencsv:5.9'
+    
 	implementation 'com.google.code.gson:gson:2.10.1'
 }
 
