@@ -7,8 +7,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 
+import java.security.Principal;
 import java.util.Map;
 
 @Slf4j
@@ -23,10 +25,19 @@ public class ChatController {
 
     // 클라이언트가 /pub/chat/message 로 메시지를 보내면 이 메서드가 호출된다
     @MessageMapping("/chat/message")
-    public void message(ChatMessageDTO message) {
+    public void message(ChatMessageDTO message, Principal principal) {
 
-        //테스트용 로그
-        log.info(">>>> WebSocket Message Received: {}", message.getContent());
+        if (principal == null) {
+            log.error("Principal is null. User may not be authenticated.");
+            return; // 또는 예외 처리
+        }
+
+        String memberId = principal.getName();
+        // 클라이언트가 보낸 senderId를 무시하고, 인증된 사용자의 ID를 강제로 설정
+        message.setSenderId(Long.parseLong(memberId));
+
+        log.info(">>>> WebSocket Message Received from memberId {}: {}", memberId, message.getContent());
+
         // 1. DTO를 반환하는 서비스 메서드를 호출
         ChatMessageDTO savedMessageDTO = chatService.saveMessageAndGetDTO(message);
 

@@ -1,6 +1,6 @@
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '3.5.5'
+	id 'org.springframework.boot' version '3.2.5'
 	id 'io.spring.dependency-management' version '1.1.7'
 }
 
@@ -24,6 +24,9 @@ repositories {
 	mavenCentral()
 }
 
+// QueryDSL 버전을 변수로 관리
+def querydslVersion = "5.0.0"
+
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
@@ -36,7 +39,6 @@ dependencies {
 	// test
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
-
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
 	// swagger
@@ -44,31 +46,48 @@ dependencies {
 
 	// jwt
 	implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
-	implementation 'io.jsonwebtoken:jjwt-impl:0.11.5'
-	implementation 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
+	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
 
 	// oauth
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 
-	// RestTemplate 대신 WebClient 사용을 위한 WebFlux 의존성
+	// WebFlux for WebClient
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
+	// gson
 	implementation 'com.google.code.gson:gson:2.10.1'
 
-	//validation 의존성
+	// validation
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 
-	// WebSocket + Spring Security 연동을 위한 의존성
+	// WebSocket + Spring Security
 	implementation 'org.springframework.security:spring-security-messaging'
+
+	// QueryDSL 의존성 추가
+	implementation "com.querydsl:querydsl-jpa:${querydslVersion}:jakarta"
+	annotationProcessor "com.querydsl:querydsl-apt:${querydslVersion}:jakarta"
+	annotationProcessor "jakarta.annotation:jakarta.annotation-api"
+	annotationProcessor "jakarta.persistence:jakarta.persistence-api"
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
 }
 
-// QueryDSL 추가 설정
-def querydslDir = layout.buildDirectory.dir("generated/querydsl").get().asFile
+// QueryDSL generated 폴더 설정
+def generatedDir = layout.buildDirectory.dir("generated/querydsl")
 
 sourceSets {
-	main.java.srcDirs += querydslDir
+	main.java.srcDirs += generatedDir
+}
+
+tasks.withType(JavaCompile) {
+	options.getGeneratedSourceOutputDirectory().set(generatedDir)
+}
+
+tasks.named('clean') {
+	doLast {
+		file(generatedDir).deleteDir()
+	}
 }
