@@ -2,10 +2,7 @@ package com.mobi.mobi.member.controller;
 
 import com.mobi.mobi.apiPayload.ApiResponse;
 import com.mobi.mobi.apiPayload.status.SuccessStatus;
-import com.mobi.mobi.member.dto.MemberProfileResponseDTO;
-import com.mobi.mobi.member.dto.NicknameCheckResponseDTO;
-import com.mobi.mobi.member.dto.UpdateAvatarRequestDTO;
-import com.mobi.mobi.member.dto.UpdateDescribeRequestDTO;
+import com.mobi.mobi.member.dto.*;
 import com.mobi.mobi.member.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -15,6 +12,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Tag(name = "Member API", description = "회원 관련 API")
 @RestController
@@ -51,6 +50,16 @@ public class MemberController {
             @AuthenticationPrincipal String memberId
     ) {
         MemberProfileResponseDTO responseDTO = memberService.getMyProfile(Long.parseLong(memberId));
+        return ApiResponse.onSuccess(SuccessStatus._OK, responseDTO);
+    }
+
+    @GetMapping("/search")
+    @Operation(summary = "닉네임으로 사용자 검색 API", description = "친구 추가를 위해 닉네임으로 사용자를 검색합니다.")
+    @SecurityRequirement(name = "bearerAuth")
+    public ApiResponse<List<MemberSearchResponseDTO.MemberInfo>> searchMembers(
+            @AuthenticationPrincipal String viewerId,
+            @RequestParam("nickname") String nickname) {
+        List<MemberSearchResponseDTO.MemberInfo> responseDTO = memberService.searchMembersByNickname(Long.parseLong(viewerId), nickname);
         return ApiResponse.onSuccess(SuccessStatus._OK, responseDTO);
     }
 
