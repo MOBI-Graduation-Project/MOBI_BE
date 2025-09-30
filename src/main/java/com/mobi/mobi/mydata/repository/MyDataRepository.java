@@ -6,7 +6,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.mobi.mobi.stockdata.entity.StockData; //
 import java.util.List;
 import java.util.Optional;
-
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 public interface MyDataRepository extends JpaRepository<MyData, Long> {
 
     // 특정 사용자의 모든 마이데이터 조회
@@ -19,4 +20,8 @@ public interface MyDataRepository extends JpaRepository<MyData, Long> {
 
     // 마이데이터 ID와 사용자 ID로 데이터 조회 (수정/삭제 시 소유권 확인)
     Optional<MyData> findByIdAndMemberId(Long id, Long memberId);
+
+    // ▼▼▼ [수정] @Query 어노테이션 추가 ▼▼▼
+    @Query("select m from MyData m join fetch m.stockData where m.member = :member")
+    List<MyData> findAllByMemberWithStockData(@Param("member") Member member);
 }
