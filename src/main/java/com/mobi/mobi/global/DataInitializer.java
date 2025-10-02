@@ -1,45 +1,69 @@
-package com.mobi.mobi.global; // 공용 패키지
+package com.mobi.mobi.global;
 
 import com.mobi.mobi.stockdata.entity.StockData;
-import com.opencsv.CSVReader;
-import com.opencsv.CSVReaderBuilder;
+import com.mobi.mobi.stockdata.repository.StockDataRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
+
+import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.StandardCharsets; // ✨ StandardCharsets 임포트
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import com.mobi.mobi.stockdata.repository.StockDataRepository;
 
 @Component
 @RequiredArgsConstructor
-public class DataInitializer implements CommandLineRunner {
+public class DataInitializer implements ApplicationRunner {
 
     private final StockDataRepository stockDataRepository;
 
     @Override
-    public void run(String... args) throws Exception {
-        // DB에 데이터가 없으면 초기화 진행
-        if (stockDataRepository.count() == 0) {
-            List<StockData> stockList = new ArrayList<>();
-            ClassPathResource resource = new ClassPathResource("stocks.csv");
-
-            try (InputStreamReader reader = new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8)) {
-                // CSV 첫 줄(헤더)은 건너뛰기
-                CSVReader csvReader = new CSVReaderBuilder(reader).withSkipLines(1).build();
-
-                String[] line;
-                while ((line = csvReader.readNext()) != null) {
-                    stockList.add(StockData.builder()
-                            .code(line[0])     // 1열: 종목코드
-                            .name(line[1])     // 2열: 종목명
-                            .market(line[2])   // 3열: 시장구분
-                            .build());
-                }
-            }
-            stockDataRepository.saveAll(stockList);
-            System.out.println(stockList.size() + "개의 주식 정보를 DB에 저장했습니다.");
+    public void run(ApplicationArguments args) throws Exception {
+        if (stockDataRepository.count() > 0) {
+            System.out.println("주식 데이터가 이미 존재하여 초기화를 건너뜁니다.");
+            return;
         }
-    }}
+
+        List<StockData> stockDataList = new ArrayList<>();
+        ClassPathResource resource = new ClassPathResource("data_4310_20251003.csv");
+
+        // ▼▼▼ [수정] 파일 인코딩 방식을 다시 "UTF-8"로 변경 ▼▼▼
+        BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8));
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
+        reader.readLine(); // 헤더 건너뛰기
+
+        String line;
+        while ((line = reader.readLine()) != null) {
+            String[] columns = line.split(",");
+
+            String code = columns[1].replace("\"", "");
+            String name = columns[2].replace("\"", "");
+            String market = columns[6].replace("\"", "");
+            LocalDate listingDate = null;
+            try {
+                if (columns.length > 5 && !columns[5].replace("\"", "").isEmpty()) {
+                    listingDate = LocalDate.parse(columns[5].replace("\"", ""), formatter);
+                }
+            } catch (Exception e) {
+                System.out.println("날짜 파싱 오류 (종목코드: " + code + "): " + columns[5]);
+            }
+
+            stockDataList.add(StockData.builder()
+                    .code(code)
+                    .name(name)
+                    .market(market)
+                    .listingDate(listingDate)
+                    .build());
+        }
+        reader.close();
+
+        stockDataRepository.saveAll(stockDataList);
+        System.out.println("새로운 주식 데이터 초기화 완료. 총 " + stockDataList.size() + "개의 데이터가 저장되었습니다.");
+    }
+}
