@@ -102,5 +102,10 @@ public class JwtTokenProvider {
             return e.getClaims();
         }
     }
+
+    public SecretKey getKey() {
+        return key;
+    }
+
 }
 
