@@ -32,7 +32,7 @@ public class MyDataController {
             @Valid @RequestBody MyDataRequestDTO requestDTO) {
         Long memberId = Long.parseLong(user.getUsername());
         MyDataResponseDTO responseDTO = myDataService.addMyData(memberId, requestDTO);
-        return ApiResponse.onSuccess(SuccessStatus._OK, responseDTO); // 생성(201) 상태 코드로 변경
+        return ApiResponse.onSuccess(SuccessStatus._CREATED, responseDTO);
     }
 
     @GetMapping("")
@@ -41,7 +41,7 @@ public class MyDataController {
             @AuthenticationPrincipal User user) {
         Long memberId = Long.parseLong(user.getUsername());
         MyDataListResponseDTO responseDTO = myDataService.getMyData(memberId);
-        return ApiResponse.onSuccess(SuccessStatus._CREATED, responseDTO);
+        return ApiResponse.onSuccess(SuccessStatus._OK, responseDTO);
     }
 
     @PutMapping("/{myDataId}")
@@ -66,6 +66,4 @@ public class MyDataController {
         myDataService.deleteMyData(memberId, myDataId);
         return ApiResponse.onSuccess(SuccessStatus._OK, null);
     }
-
-
 }

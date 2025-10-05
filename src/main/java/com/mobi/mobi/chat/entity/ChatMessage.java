@@ -24,10 +24,19 @@ public class ChatMessage extends BaseEntity {
     @Column(nullable = false, length = 1000)
     private String content;
 
+    @Column(nullable = false)
+    private boolean isRead = false;
+
     @Builder
     public ChatMessage(ChatRoom chatRoom, Member sender, String content) {
         this.chatRoom = chatRoom;
         this.sender = sender;
         this.content = content;
+        this.isRead = false;
+    }
+
+    //메시지 읽음처리메서드
+    public void markAsRead() {
+        this.isRead = true;
     }
 }
