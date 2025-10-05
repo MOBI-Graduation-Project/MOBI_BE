@@ -14,6 +14,7 @@ public class ChatMessageDTO {
     private String senderNickname; // 보낸 사람 닉네임
     private String content; // 메시지 내용
     private LocalDateTime sentAt; // 보낸 시간
+    private boolean isRead; // 읽음 여부 필드
 
     // Entity -> DTO 변환 (서버가 클라이언트에게 메시지를 보낼 때 사용)
     public static ChatMessageDTO fromEntity(ChatMessage entity) {
@@ -23,6 +24,7 @@ public class ChatMessageDTO {
         dto.setSenderNickname(entity.getSender().getNickname());
         dto.setContent(entity.getContent());
         dto.setSentAt(entity.getCreatedAt()); // BaseEntity의 createdAt 사용
+        dto.setRead(entity.isRead());
         return dto;
     }
 }

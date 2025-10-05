@@ -65,7 +65,6 @@ public class FriendController {
     ) {
         Long currentMemberId = Long.parseLong(user.getUsername());
         friendService.deleteFriend(currentMemberId, friendId);
-
         return ApiResponse.onSuccess(SuccessStatus._OK, null);
     }
 }
