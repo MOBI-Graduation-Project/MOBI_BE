@@ -42,7 +42,8 @@ public class MyDataService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.MEMBER_NOT_FOUND));
 
-        StockData stockData = stockDataRepository.findById(requestDTO.getStockCode())
+        String cleanedStockName = requestDTO.getStockName().trim();
+        StockData stockData = stockDataRepository.findByName(cleanedStockName)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.STOCK_NOT_FOUND));
 
         if (myDataRepository.existsByMemberAndStockData(member, stockData)) {

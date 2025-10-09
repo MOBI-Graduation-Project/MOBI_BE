@@ -4,12 +4,13 @@ package com.mobi.mobi.global;
 
 import com.mobi.mobi.stockdata.entity.StockData;
 import com.mobi.mobi.stockdata.repository.StockDataRepository;
+import com.mobi.mobi.mydata.repository.MyDataRepository; // ✅ 1. MyDataRepository를 임포트하세요. (경로는 실제 위치에 맞게 수정)
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional; // ✅ Transactional 추가
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -24,13 +25,19 @@ import java.util.List;
 public class DataInitializer implements ApplicationRunner {
 
     private final StockDataRepository stockDataRepository;
+    private final MyDataRepository myDataRepository; // ✅ 2. MyDataRepository를 주입받으세요.
 
     @Override
-    @Transactional // ✅ 데이터 삭제 및 저장을 하나의 트랜잭션으로 묶기 위해 추가
+    @Transactional
     public void run(ApplicationArguments args) throws Exception {
-        // ▼▼▼ [수정] 기존 로직 대신, 매번 데이터를 새로고침하도록 변경 ▼▼▼
-        System.out.println("기존 주식 데이터를 삭제하고 초기화를 시작합니다.");
-        stockDataRepository.deleteAllInBatch(); // 기존 데이터 모두 삭제
+        System.out.println("기존 데이터를 삭제하고 초기화를 시작합니다.");
+
+        // ▼▼▼ ✨ 여기가 핵심 수정 부분입니다! ✨ ▼▼▼
+        // 3. 자식 테이블 데이터를 먼저 삭제합니다.
+        myDataRepository.deleteAllInBatch();
+
+        // 4. 그 다음 부모 테이블 데이터를 삭제합니다.
+        stockDataRepository.deleteAllInBatch();
 
         List<StockData> stockDataList = new ArrayList<>();
         ClassPathResource resource = new ClassPathResource("data_4310_20251003.csv");
@@ -42,15 +49,10 @@ public class DataInitializer implements ApplicationRunner {
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] columns = line.split(",");
-
-                if (columns.length < 7) continue; // 데이터가 부족한 줄은 건너뛰기
+                if (columns.length < 7) continue;
 
                 String code = columns[1].replace("\"", "");
-
-                // ▼▼▼ ✨ 여기가 핵심 수정 부분입니다! ✨ ▼▼▼
-                // 세 번째 열(columns[2]) 대신 네 번째 열(columns[3])을 'name'으로 사용합니다.
-                String name = columns[3].replace("\"", ""); // "한글 종목약명"
-
+                String name = columns[3].replace("\"", "");
                 String market = columns[6].replace("\"", "");
                 LocalDate listingDate = null;
                 try {
