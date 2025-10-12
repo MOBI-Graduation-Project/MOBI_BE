@@ -1,6 +1,8 @@
 package com.mobi.mobi.signup.controller;
 
 import com.mobi.mobi.apiPayload.ApiResponse;
+import com.mobi.mobi.apiPayload.handler.MemberHandler;
+import com.mobi.mobi.apiPayload.status.ErrorStatus;
 import com.mobi.mobi.apiPayload.status.SuccessStatus;
 import com.mobi.mobi.signup.dto.SignupRequestDTO;
 import com.mobi.mobi.signup.dto.SignupResponseDTO;
@@ -31,10 +33,15 @@ public class SignupController {
     @Operation(summary = "회원가입 완료 API", description = "닉네임, 설문, 약관 동의 결과를 받아 회원가입을 최종 완료합니다. (JWT 토큰 필요)")
 
     public ApiResponse<SignupResponseDTO> completeSignup(
-            @AuthenticationPrincipal String memberId,
+            @AuthenticationPrincipal User user,
             @Valid @RequestBody SignupRequestDTO requestDTO) {
 
-        SignupResponseDTO responseDTO = signupService.completeSignup(Long.parseLong(memberId), requestDTO);
+        if (user == null) {
+            throw new MemberHandler(ErrorStatus.MEMBER_UNAUTHORIZED);
+        }
+
+        Long memberId = Long.parseLong(user.getUsername());
+        SignupResponseDTO responseDTO = signupService.completeSignup(memberId, requestDTO);
 
         return ApiResponse.onSuccess(SuccessStatus._OK, responseDTO);
     }
