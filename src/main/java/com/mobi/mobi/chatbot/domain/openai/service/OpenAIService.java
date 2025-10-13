@@ -16,8 +16,12 @@ import org.springframework.ai.embedding.EmbeddingOptions;
 import org.springframework.ai.embedding.EmbeddingRequest;
 import org.springframework.ai.embedding.EmbeddingResponse;
 import org.springframework.ai.openai.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.util.List;
 
@@ -43,28 +47,23 @@ public class OpenAIService {
         this.chatRepository = chatRepository;
     }
 
-    // 1. 로그인한 사용자 ID와 질문을 파라미터로 받도록 수정
+    // 일반 채팅 (변경 없음)
     public String generate(Long memberId, String question) {
         String userId = String.valueOf(memberId);
 
-        // 메시지
         SystemMessage systemMessage = new SystemMessage("");
         UserMessage userMessage = new UserMessage(question);
 
-        // 옵션
         OpenAiChatOptions options = OpenAiChatOptions.builder()
-                .model("gpt-4o-mini") // 모델명 gpt-4.1-mini -> gpt-4o-mini 로 변경 (최신 모델)
+                .model("gpt-4o-mini")
                 .temperature(0.7)
                 .build();
 
-        // 프롬프트
         Prompt prompt = new Prompt(List.of(systemMessage, userMessage), options);
 
-        // 요청 및 응답
         ChatResponse response = openAiChatModel.call(prompt);
         String answer = response.getResult().getOutput().getText();
 
-        // 2. 채팅 내역을 DB에 저장하는 로직 추가
         ChatBotEntity userChat = new ChatBotEntity();
         userChat.setUserId(userId);
         userChat.setType(MessageType.USER);
@@ -80,16 +79,19 @@ public class OpenAIService {
         return answer;
     }
 
-    // 1. 로그인한 사용자 ID와 질문을 파라미터로 받도록 수정
-    public Flux<String> generateStream(Long memberId, String question) {
-        // 2. 하드코딩된 userId를 실제 memberId로 교체
+    // 스트림 채팅 (보안 및 블로킹 문제 해결)
+    public Flux<String> generateStream(Long memberId, String question, Authentication authentication) {
         String userId = String.valueOf(memberId);
 
-        // 전체 대화 저장용 (User 질문)
+        // 1. 사용자 질문 저장을 Mono로 감싸고, 블로킹 작업을 위한 별도 스레드에서 실행하도록 예약
         ChatBotEntity chatUserEntity = new ChatBotEntity();
         chatUserEntity.setUserId(userId);
         chatUserEntity.setType(MessageType.USER);
         chatUserEntity.setContent(question);
+
+        Mono<Void> saveUserChatMono = Mono.fromRunnable(() -> chatRepository.save(chatUserEntity))
+                .subscribeOn(Schedulers.boundedElastic())
+                .then();
 
         // 이전 대화 기억을 위한 ChatMemory 설정
         ChatMemory chatMemory = MessageWindowChatMemory.builder()
@@ -98,20 +100,18 @@ public class OpenAIService {
                 .build();
         chatMemory.add(userId, new UserMessage(question));
 
-        // 옵션
+        // 옵션 및 프롬프트 설정
         OpenAiChatOptions options = OpenAiChatOptions.builder()
-                .model("gpt-4o-mini") // 모델명 gpt-4.1-mini -> gpt-4o-mini 로 변경 (최신 모델)
+                .model("gpt-4o-mini")
                 .temperature(0.7)
                 .build();
-
-        // 프롬프트
         Prompt prompt = new Prompt(chatMemory.get(userId), options);
 
         // 응답 메시지를 저장할 임시 버퍼
         StringBuilder responseBuffer = new StringBuilder();
 
-        // 요청 및 응답
-        return openAiChatModel.stream(prompt)
+        // 2. 메인 스트림 로직
+        Flux<String> openAiStream = openAiChatModel.stream(prompt)
                 .mapNotNull(response -> {
                     String token = response.getResult().getOutput().getText();
                     if (token != null) {
@@ -119,22 +119,32 @@ public class OpenAIService {
                         return token;
                     }
                     return null;
-                })
-                .doOnComplete(() -> {
-                    String fullResponse = responseBuffer.toString();
-                    chatMemory.add(userId, new AssistantMessage(fullResponse));
-                    chatMemoryRepository.saveAll(userId, chatMemory.get(userId));
-
-                    // 전체 대화 저장용 (Assistant 답변)
-                    ChatBotEntity chatAssistantEntity = new ChatBotEntity();
-                    chatAssistantEntity.setUserId(userId);
-                    chatAssistantEntity.setType(MessageType.ASSISTANT);
-                    chatAssistantEntity.setContent(fullResponse);
-
-                    chatRepository.saveAll(List.of(chatUserEntity, chatAssistantEntity));
                 });
+
+        // 3. 스트림이 모두 완료된 후 실행할 AI 답변 저장 로직을 Mono로 분리
+        Mono<Void> saveAssistantChatMono = Mono.fromRunnable(() -> {
+            String fullResponse = responseBuffer.toString();
+            chatMemory.add(userId, new AssistantMessage(fullResponse));
+            chatMemoryRepository.saveAll(userId, chatMemory.get(userId));
+
+            ChatBotEntity chatAssistantEntity = new ChatBotEntity();
+            chatAssistantEntity.setUserId(userId);
+            chatAssistantEntity.setType(MessageType.ASSISTANT);
+            chatAssistantEntity.setContent(fullResponse);
+            chatRepository.save(chatAssistantEntity);
+        }).subscribeOn(Schedulers.boundedElastic()).then();
+
+        // 4. 모든 Mono와 Flux를 순서대로 실행하도록 조합
+        return Flux.defer(() ->
+                        saveUserChatMono // 먼저 사용자 질문을 저장하고
+                                .thenMany(openAiStream) // 그 다음에 OpenAI 스트림을 시작하고
+                                .concatWith(saveAssistantChatMono.then(Mono.empty())) // 스트림이 끝나면 AI 답변을 저장
+                )
+                // 마지막으로 전체 스트림 파이프라인에 Security Context 전파
+                .contextWrite(ReactiveSecurityContextHolder.withAuthentication(authentication));
     }
 
+    // 임베딩 (변경 없음)
     public List<float[]> generateEmbedding(List<String> texts, String model) {
         EmbeddingOptions embeddingOptions = OpenAiEmbeddingOptions.builder()
                 .model(model).build();

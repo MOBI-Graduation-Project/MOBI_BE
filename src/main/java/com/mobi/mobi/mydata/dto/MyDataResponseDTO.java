@@ -21,6 +21,11 @@ public class MyDataResponseDTO {
     @Setter
     private BigDecimal currentPrice;
 
+    @Setter
+    private BigDecimal returnAmount; // 수익금
+
+    @Setter
+    private BigDecimal returnRate;   // 수익률 (%)
 
     public MyDataResponseDTO(MyData myData) {
         this.myDataId = myData.getId();

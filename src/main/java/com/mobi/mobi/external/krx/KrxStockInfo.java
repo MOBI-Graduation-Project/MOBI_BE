@@ -7,9 +7,10 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 public class KrxStockInfo {
-    @JsonProperty("TDD_CLSPRC") // 종가 (오늘의 현재가)
-    private String currentPrice;
 
-    @JsonProperty("ISU_CD") // 종목 코드
+    @JsonProperty("ISU_CD")     // 명세서의 "종목코드"
     private String stockCode;
+
+    @JsonProperty("TDD_CLSPRC") // 명세서의 "종가" (오늘의 현재가)
+    private String currentPrice;
 }

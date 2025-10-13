@@ -9,7 +9,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
-
+import org.springframework.security.core.Authentication;
 import java.util.List;
 import java.util.Map;
 
@@ -37,11 +37,12 @@ public class ChatBotController {
 
     @ResponseBody
     @PostMapping("/chatbot/stream")
-    public Flux<String> streamChat(@AuthenticationPrincipal User user, @RequestBody Map<String, String> body) {
+    public Flux<String> streamChat(@AuthenticationPrincipal User user, Authentication authentication, @RequestBody Map<String, String> body) { // Authentication 파라미터 추가
         Long memberId = Long.parseLong(user.getUsername());
         String question = body.get("text");
 
-        return openAIService.generateStream(memberId, question);
+        // 서비스 메소드에 authentication 객체를 전달
+        return openAIService.generateStream(memberId, question, authentication);
     }
 
     @ResponseBody
