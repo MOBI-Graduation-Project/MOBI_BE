@@ -79,7 +79,7 @@ public class MyDataService {
         List<KrxStockInfo> allStockInfo = Collections.emptyList();
 
         System.out.println("===== KRX API 호출 시작 ====="); // 디버깅 로그
-        for (int i = 0; i < 7; i++) {
+        for (int i = 0; i < 15; i++) {
             String dateString = requestDate.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
             System.out.println("날짜 " + dateString + "으로 데이터 조회 시도..."); // 디버깅 로그
 
