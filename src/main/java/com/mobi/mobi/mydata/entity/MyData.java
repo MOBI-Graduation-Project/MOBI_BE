@@ -7,7 +7,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
+import com.mobi.mobi.stockdata.entity.StockData;  //미리 db에 넣어둔 주식정보
 import java.math.BigDecimal;
 
 @Entity
@@ -24,8 +24,12 @@ public class MyData extends BaseEntity {
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
-    @Column(name = "stock_code", nullable = false, length = 16)
-    private String stockCode;
+    //@Column(name = "stock_code", nullable = false, length = 16)
+    //private String stockCode;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "stock_code") // stock_code 컬럼을 통해 StockData 테이블과 연결
+    private StockData stockData;
+
 
     @Column(name = "purchase_amount", nullable = false, precision = 18, scale = 4)
     private BigDecimal purchaseAmount;
@@ -35,9 +39,9 @@ public class MyData extends BaseEntity {
 
 
     @Builder
-    public MyData(Member member, String stockCode, BigDecimal purchaseAmount, BigDecimal avgPrice) {
+    public MyData(Member member,StockData stockData, BigDecimal purchaseAmount, BigDecimal avgPrice) {
         this.member = member;
-        this.stockCode = stockCode;
+        this.stockData = stockData;//this.stockCode = stockCode;
         this.purchaseAmount = purchaseAmount;
         this.avgPrice = avgPrice;
     }
