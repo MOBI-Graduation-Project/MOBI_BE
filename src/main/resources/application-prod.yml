@@ -35,6 +35,14 @@ aws:
     secret-key: ${AWS_SECRET_KEY}
   region: ap-northeast-2
 
+cloud:
+  aws:
+    credentials:
+      access-key: ${AWS_ACCESS_KEY}
+      secret-key: ${AWS_SECRET_KEY}
+    s3:
+      bucket: ${S3_BUCKET}
+
 jwt:
   secret: ${JWT_SECRET_KEY}
   access-token:

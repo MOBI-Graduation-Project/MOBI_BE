@@ -79,6 +79,9 @@ dependencies {
 	//websocket 보안성 의존성
 	implementation 'org.springframework.security:spring-security-messaging'
 
+	// AWS S3 의존성
+	implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
+
 }
 
 tasks.named('test') {
