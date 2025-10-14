@@ -8,6 +8,9 @@ group = 'com.mobi'
 version = '0.0.1-SNAPSHOT'
 description = 'gradual project'
 
+ext {
+	set('springAiVersion', "1.0.2")
+}
 java {
 	toolchain {
 		languageVersion = JavaLanguageVersion.of(17)
@@ -33,6 +36,12 @@ dependencies {
 	runtimeOnly 'com.mysql:mysql-connector-j'
 	annotationProcessor 'org.projectlombok:lombok'
 
+	//챗봇 Spring AI
+	// implementation 'org.springframework.ai:spring-ai-openai-spring-boot-starter'
+	implementation 'org.springframework.ai:spring-ai-starter-model-openai'
+	implementation 'org.springframework.ai:spring-ai-starter-model-chat-memory-repository-jdbc'
+	runtimeOnly 'com.mysql:mysql-connector-j'
+
 	// test
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
@@ -54,6 +63,9 @@ dependencies {
 	// RestTemplate 대신 WebClient 사용을 위한 WebFlux 의존성
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
+    // OpenCSV for CSV file handling, 주식 종목들의 정보를 담은 csv파일을 불러오는 의존성
+    implementation 'com.opencsv:opencsv:5.9'
+    
 	implementation 'com.google.code.gson:gson:2.10.1'
 
 	//  QueryDSL
@@ -67,6 +79,9 @@ dependencies {
 	//websocket 보안성 의존성
 	implementation 'org.springframework.security:spring-security-messaging'
 
+	// AWS S3 의존성
+	implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
+
 }
 
 tasks.named('test') {
@@ -78,4 +93,10 @@ def querydslDir = layout.buildDirectory.dir("generated/querydsl").get().asFile
 
 sourceSets {
 	main.java.srcDirs += querydslDir
+}
+//챗봇용 spring ai
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.ai:spring-ai-bom:${springAiVersion}"
+	}
 }

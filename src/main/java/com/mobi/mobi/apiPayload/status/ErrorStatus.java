@@ -22,6 +22,11 @@ public enum ErrorStatus implements BaseErrorCode {
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "MEMBER4300", "사용자가 없습니다"),
     MEMBER_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "MEMBER4001", "인증되지 않은 사용자입니다. 토큰을 확인해주세요."),
 
+    // 프로필 이미지 관련 에러 추가
+    MEMBER_PROFILE_IMAGE_NOT_FOUND(HttpStatus.BAD_REQUEST, "MEMBER4003", "프로필 이미지를 찾을 수 없습니다."),
+    MEMBER_PROFILE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "MEMBER5001", "프로필 이미지 업로드에 실패했습니다."),
+    MEMBER_PROFILE_INVALID_FILE_FORMAT(HttpStatus.BAD_REQUEST, "MEMBER4004", "잘못된 파일 형식입니다."),
+
     // 친구 관련 에러
     FRIEND_REQUEST_ALREADY_SENT(HttpStatus.CONFLICT, "FRIEND4314", "이미 친구 요청을 보냈습니다."),
     ALREADY_FRIENDS(HttpStatus.CONFLICT, "FRIEND4315", "이미 친구 상태입니다."),
@@ -48,7 +53,8 @@ public enum ErrorStatus implements BaseErrorCode {
     // 테스트 용 응답
     TEST_FAIL(HttpStatus.BAD_REQUEST, "TEST400", "사용자 정의 실패 응답입니다."),
 
-    ;
+
+    STOCK_NOT_FOUND(HttpStatus.NOT_FOUND, "STOCK4001", "해당 주식을 찾을 수 없습니다.");
 
     private final HttpStatus httpStatus;
     private final String code;

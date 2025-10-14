@@ -2,14 +2,14 @@ package com.mobi.mobi.mydata.dto;
 
 import jakarta.validation.constraints.*;
 import lombok.Getter;
-
 import java.math.BigDecimal;
 
 @Getter
 public class MyDataRequestDTO {
 
-    @NotBlank(message = "주식 코드를 입력해주세요.")
-    private String stockCode;
+    // ▼▼▼ [수정] "stockCode" -> "stockName"으로 변경 ▼▼▼
+    @NotBlank(message = "종목명을 입력해주세요.")
+    private String stockName;
 
     @NotNull(message = "매수량을 입력해주세요.")
     @Positive(message = "매수량은 0보다 커야 합니다.")
