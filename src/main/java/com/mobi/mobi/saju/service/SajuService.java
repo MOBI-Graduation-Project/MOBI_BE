@@ -57,7 +57,7 @@ public class SajuService {
         );
         UserMessage userMessage = new UserMessage(userPrompt);
 
-        // 6. OpenAiChatOptions 설정 (기존 OpenAIService.java 참고)
+        // 6. OpenAiChatOptions 설정
         OpenAiChatOptions options = OpenAiChatOptions.builder()
                 .model("gpt-4o-mini")
                 .temperature(0.7)

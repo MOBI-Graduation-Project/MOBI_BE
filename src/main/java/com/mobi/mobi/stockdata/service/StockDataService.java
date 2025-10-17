@@ -1,7 +1,7 @@
 package com.mobi.mobi.stockdata.service;
 
-import com.mobi.mobi.stockdata.dto.StockSearchResponse; // import 경로 수정
-import com.mobi.mobi.stockdata.repository.StockDataRepository; // import 경로 수정
+import com.mobi.mobi.stockdata.dto.StockSearchResponse;
+import com.mobi.mobi.stockdata.repository.StockDataRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

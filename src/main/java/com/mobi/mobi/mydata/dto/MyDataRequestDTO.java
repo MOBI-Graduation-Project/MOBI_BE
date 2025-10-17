@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 @Getter
 public class MyDataRequestDTO {
 
-    // ▼▼▼ [수정] "stockCode" -> "stockName"으로 변경 ▼▼▼
+
     @NotBlank(message = "종목명을 입력해주세요.")
     private String stockName;
 

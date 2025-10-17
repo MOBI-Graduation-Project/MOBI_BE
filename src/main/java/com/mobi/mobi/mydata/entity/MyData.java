@@ -27,7 +27,7 @@ public class MyData extends BaseEntity {
     //@Column(name = "stock_code", nullable = false, length = 16)
     //private String stockCode;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "stock_code") // stock_code 컬럼을 통해 StockData 테이블과 연결
+    @JoinColumn(name = "stock_code")
     private StockData stockData;
 
 
