@@ -1,11 +1,11 @@
 package com.mobi.mobi.stockdata.controller;
 
-import com.mobi.mobi.stockdata.dto.StockSearchResponse; // import 경로 수정
-import com.mobi.mobi.stockdata.service.StockDataService; // import 경로 수정
+import com.mobi.mobi.stockdata.dto.StockSearchResponse;
+import com.mobi.mobi.stockdata.service.StockDataService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping; // RequestMapping 추가
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
