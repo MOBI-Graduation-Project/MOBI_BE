@@ -26,6 +26,24 @@ spring:
       maxFileSize: 10MB
       maxRequestSize: 50MB
 
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope:
+              - email
+              - profile
+            redirect-uri: ${GOOGLE_REDIRECT_URI}
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      chat:
+        options:
+          model: gpt-4o-mini
+
 aws:
   s3:
     bucket: ${S3_BUCKET}
@@ -57,7 +75,6 @@ urls:
   frontend: ${URLS_FRONTEND}
   backend: ${URLS_BACKEND}
 
-google:
-  client-id: ${GOOGLE_CLIENT_ID}
-  client-secret: ${GOOGLE_CLIENT_SECRET}
-  redirect-uri: ${GOOGLE_REDIRECT_URI}
+api:
+  krx:
+    key: ${KRX_API_KEY}
