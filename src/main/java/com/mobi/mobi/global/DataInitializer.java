@@ -41,20 +41,28 @@ public class DataInitializer implements ApplicationRunner {
                 .withSkipLines(1)
                 .build()) {
 
+
             String[] line;
             while ((line = reader.readNext()) != null) {
 
                 String code = line[1];        // 단축코드
                 String name = line[3];        // 한글 종목약명
+
+                // 인덱스수정 5->6
+                int listingDateIndex = 6;
+
                 LocalDate listingDate = null;
                 try {
-                    if (line.length > 5 && !line[5].isEmpty()) {
-                        listingDate = LocalDate.parse(line[5], formatter); // 상장일
+                    // line.length 체크도 5에서 6으로 수정
+                    if (line.length > listingDateIndex && !line[listingDateIndex].isEmpty()) {
+                        listingDate = LocalDate.parse(line[listingDateIndex], formatter); // 상장일
                     }
                 } catch (Exception e) {
-                    System.out.println("날짜 파싱 오류 (종목코드: " + code + "): " + line[5]);
+                    System.out.println("날짜 파싱 오류 (종목코드: " + code + "): 잘못 읽힌 값: " + line[listingDateIndex]);
                 }
-                String market = line[6];      // 시장구분
+
+                // 인덱스 6->7
+                String market = line[7];      // 시장구분
 
                 stockDataList.add(StockData.builder()
                         .code(code)
