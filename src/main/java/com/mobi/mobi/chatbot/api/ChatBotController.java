@@ -31,7 +31,7 @@ public class ChatBotController {
         Long memberId = Long.parseLong(user.getUsername());
         String question = body.get("text");
 
-        // ✅ 수정된 부분: memberId와 question을 모두 전달합니다.
+
         return openAIService.generate(memberId, question);
     }
 
@@ -41,7 +41,7 @@ public class ChatBotController {
         Long memberId = Long.parseLong(user.getUsername());
         String question = body.get("text");
 
-        // 서비스 메소드에 authentication 객체를 전달
+
         return openAIService.generateStream(memberId, question, authentication);
     }
 

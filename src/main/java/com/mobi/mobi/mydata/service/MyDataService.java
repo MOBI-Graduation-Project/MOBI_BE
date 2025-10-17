@@ -62,7 +62,7 @@ public class MyDataService {
         return new MyDataResponseDTO(savedMyData);
     }
 
-    // ▼▼▼▼▼ 휴일 처리 로직이 추가된 최종 버전입니다 ▼▼▼▼▼
+
     public MyDataListResponseDTO getMyData(Long memberId) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.MEMBER_NOT_FOUND));
@@ -70,11 +70,11 @@ public class MyDataService {
         List<MyData> myDataList = myDataRepository.findAllByMemberWithStockData(member);
 
         if (myDataList.isEmpty()) {
-            // 데이터가 없을 경우, 모든 값을 0으로 설정하여 반환
+
             return new MyDataListResponseDTO(Collections.emptyList(), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO);
         }
 
-        // --- [최종 수정] 데이터가 있을 때까지 하루씩 이전 날짜로 API를 호출하는 로직 ---
+
         LocalDate requestDate = LocalDate.now();
         List<KrxStockInfo> allStockInfo = Collections.emptyList();
 
@@ -95,7 +95,7 @@ public class MyDataService {
         // -------------------------------------------------------------------
         System.out.println("===== KRX API 호출 종료 ====="); // 디버깅 로그
 
-        // ▼▼▼ [최종 수정] API의 종목코드에서 'A'를 제거하여 DB의 종목코드와 형식을 통일합니다. ▼▼▼
+
         Map<String, String> priceMap = Objects.requireNonNull(allStockInfo).stream()
                 .collect(Collectors.toMap(
                         stockInfo -> stockInfo.getStockCode().replaceAll("[^0-9]", ""), // "A005930" -> "005930"
@@ -110,7 +110,7 @@ public class MyDataService {
             System.out.println("Price Map이 비어있습니다. API로부터 유효한 데이터를 받지 못했을 수 있습니다.");
         }
 
-        // ▼▼▼ [수정] 수익률, 수익금 계산 로직 추가 ▼▼▼
+
         List<MyDataResponseDTO> myDataResponseDTOList = myDataList.stream()
                 .map(myData -> {
                     MyDataResponseDTO dto = new MyDataResponseDTO(myData);
@@ -152,7 +152,7 @@ public class MyDataService {
 
         BigDecimal totalReturnAmount = totalValuationAmount.subtract(totalPrincipalAmount); // 총 수익금
         BigDecimal totalReturnRate = BigDecimal.ZERO;
-        if (totalPrincipalAmount.compareTo(BigDecimal.ZERO) > 0) { // 총 투자원금이 0이 아닐 때만 계산
+        if (totalPrincipalAmount.compareTo(BigDecimal.ZERO) > 0) {
             totalReturnRate = (totalValuationAmount.divide(totalPrincipalAmount, 4, RoundingMode.HALF_UP))
                     .subtract(BigDecimal.ONE)
                     .multiply(new BigDecimal("100"));
@@ -163,7 +163,7 @@ public class MyDataService {
 
     @Transactional
     public MyDataResponseDTO updateMyData(Long memberId, Long myDataId, MyDataRequestDTO requestDTO) {
-        // ... (이 메소드는 기존과 동일)
+
         MyData myData = myDataRepository.findByIdAndMemberId(myDataId, memberId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.MYDATA_NOT_FOUND));
 
@@ -173,7 +173,7 @@ public class MyDataService {
 
     @Transactional
     public void deleteMyData(Long memberId, Long myDataId) {
-        // ... (이 메소드는 기존과 동일)
+
         MyData myData = myDataRepository.findByIdAndMemberId(myDataId, memberId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.MYDATA_NOT_FOUND));
         myDataRepository.delete(myData);

@@ -1,18 +1,17 @@
-// DataInitializer.java
-
 package com.mobi.mobi.global;
 
 import com.mobi.mobi.stockdata.entity.StockData;
 import com.mobi.mobi.stockdata.repository.StockDataRepository;
-import com.mobi.mobi.mydata.repository.MyDataRepository; // ✅ 1. MyDataRepository를 임포트하세요. (경로는 실제 위치에 맞게 수정)
+import com.opencsv.CSVReader;
+import com.opencsv.CSVReaderBuilder;
+import com.opencsv.exceptions.CsvValidationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
@@ -25,43 +24,37 @@ import java.util.List;
 public class DataInitializer implements ApplicationRunner {
 
     private final StockDataRepository stockDataRepository;
-    private final MyDataRepository myDataRepository; // ✅ 2. MyDataRepository를 주입받으세요.
 
     @Override
-    @Transactional
-    public void run(ApplicationArguments args) throws Exception {
-        System.out.println("기존 데이터를 삭제하고 초기화를 시작합니다.");
-
-        // ▼▼▼ ✨ 여기가 핵심 수정 부분입니다! ✨ ▼▼▼
-        // 3. 자식 테이블 데이터를 먼저 삭제합니다.
-        myDataRepository.deleteAllInBatch();
-
-        // 4. 그 다음 부모 테이블 데이터를 삭제합니다.
-        stockDataRepository.deleteAllInBatch();
+    public void run(ApplicationArguments args) throws IOException, CsvValidationException {
+        if (stockDataRepository.count() > 0) {
+            System.out.println("주식 데이터가 이미 존재하여 초기화를 건너뜁니다.");
+            return;
+        }
 
         List<StockData> stockDataList = new ArrayList<>();
         ClassPathResource resource = new ClassPathResource("data_4310_20251003.csv");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
 
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8))) {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
-            reader.readLine(); // 헤더 건너뛰기
 
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] columns = line.split(",");
-                if (columns.length < 7) continue;
+        try (CSVReader reader = new CSVReaderBuilder(new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8))
+                .withSkipLines(1)
+                .build()) {
 
-                String code = columns[1].replace("\"", "");
-                String name = columns[3].replace("\"", "");
-                String market = columns[6].replace("\"", "");
+            String[] line;
+            while ((line = reader.readNext()) != null) {
+
+                String code = line[1];        // 단축코드
+                String name = line[3];        // 한글 종목약명
                 LocalDate listingDate = null;
                 try {
-                    if (columns.length > 5 && !columns[5].replace("\"", "").isEmpty()) {
-                        listingDate = LocalDate.parse(columns[5].replace("\"", ""), formatter);
+                    if (line.length > 5 && !line[5].isEmpty()) {
+                        listingDate = LocalDate.parse(line[5], formatter); // 상장일
                     }
                 } catch (Exception e) {
-                    System.out.println("날짜 파싱 오류 (종목코드: " + code + "): " + columns[5]);
+                    System.out.println("날짜 파싱 오류 (종목코드: " + code + "): " + line[5]);
                 }
+                String market = line[6];      // 시장구분
 
                 stockDataList.add(StockData.builder()
                         .code(code)
@@ -73,6 +66,6 @@ public class DataInitializer implements ApplicationRunner {
         }
 
         stockDataRepository.saveAll(stockDataList);
-        System.out.println("새로운 주식 데이터 초기화 완료. 총 " + stockDataList.size() + "개의 데이터가 저장되었습니다.");
+        System.out.println("주식 데이터 초기화 완료. 총 " + stockDataList.size() + "개의 데이터가 저장되었습니다.");
     }
 }

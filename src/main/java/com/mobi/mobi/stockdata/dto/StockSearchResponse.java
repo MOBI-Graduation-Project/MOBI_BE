@@ -1,6 +1,6 @@
 package com.mobi.mobi.stockdata.dto;
 
-import com.mobi.mobi.stockdata.entity.StockData; // import 경로 추가
+import com.mobi.mobi.stockdata.entity.StockData;
 import lombok.Getter;
 
 @Getter

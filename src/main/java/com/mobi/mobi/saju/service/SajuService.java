@@ -47,7 +47,8 @@ public class SajuService {
         String formattedListingDate = listingDate.format(formatter);
 
         // 4. 시스템 메시지 (AI 역할 부여)
-        String systemPrompt = "당신은 주식과 사주 명리학의 관계를 분석하여 사람과 주식 간의 궁합을 봐주는 유머러스한 운세 전문가입니다. 분석 결과를 친절하고 상세하게 설명해주세요.";
+        //String systemPrompt = "당신은 주식과 사주 명리학의 관계를 분석하여 사람과 주식 간의 궁합을 봐주는 유머러스한 운세 전문가입니다. 분석 결과를 친절하고 상세하게 설명해주세요.";
+        String systemPrompt = "당신은 주식과 사주 명리학의 관계를 분석하여 사람과 주식 간의 궁합을 봐주는 운세 전문가입니다. 분석 결과를 친절하고 상세하게 설명해주세요. 단, 답변에는 절대로 이모티콘이나 줄바꿈 문자를 사용하지 말고, 전체 내용을 하나의 문단으로 된 줄글로 작성해야 합니다.";
         SystemMessage systemMessage = new SystemMessage(systemPrompt);
 
         // 5. 사용자 메시지 (실제 질문)
@@ -57,7 +58,7 @@ public class SajuService {
         );
         UserMessage userMessage = new UserMessage(userPrompt);
 
-        // 6. OpenAiChatOptions 설정 (기존 OpenAIService.java 참고)
+        // 6. OpenAiChatOptions 설정
         OpenAiChatOptions options = OpenAiChatOptions.builder()
                 .model("gpt-4o-mini")
                 .temperature(0.7)

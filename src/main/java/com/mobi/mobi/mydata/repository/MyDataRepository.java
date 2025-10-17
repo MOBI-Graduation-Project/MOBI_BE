@@ -21,7 +21,7 @@ public interface MyDataRepository extends JpaRepository<MyData, Long> {
     // 마이데이터 ID와 사용자 ID로 데이터 조회 (수정/삭제 시 소유권 확인)
     Optional<MyData> findByIdAndMemberId(Long id, Long memberId);
 
-    // ▼▼▼ [수정] @Query 어노테이션 추가 ▼▼▼
+
     @Query("select m from MyData m join fetch m.stockData where m.member = :member")
     List<MyData> findAllByMemberWithStockData(@Param("member") Member member);
 }
