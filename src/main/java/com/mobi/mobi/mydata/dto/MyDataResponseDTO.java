@@ -1,40 +1,52 @@
 package com.mobi.mobi.mydata.dto;
 
-
 import com.mobi.mobi.mydata.entity.MyData;
-
+import io.swagger.v3.oas.annotations.media.Schema; // Schema 임포트
 import lombok.Getter;
 import lombok.Setter;
-
 import java.math.BigDecimal;
 
 @Getter
+@Schema(description = "개별 보유 주식 정보 응답 DTO")
 public class MyDataResponseDTO {
 
+    @Schema(description = "마이데이터 ID", example = "14")
     private final Long myDataId;
-    private final Long memberId;
+
+    @Schema(description = "종목 코드", example = "005930")
     private final String stockCode;
+
+    @Schema(description = "매수 수량", example = "100")
     private final BigDecimal purchaseAmount;
+
+    @Schema(description = "평균 매입 단가", example = "50000")
     private final BigDecimal avgPrice;
-    private final String stockName; // 종목 이름도 어짜피 csv파일에 있어서 불러옴
-    // 주식 현재가
+
+    @Schema(description = "종목명", example = "삼성전자")
+    private final String stockName;
+
+    @Schema(description = "현재가", example = "82500")
     @Setter
     private BigDecimal currentPrice;
 
+    @Schema(description = "총 평가금액 (현재가 * 수량)", example = "8250000")
     @Setter
-    private BigDecimal returnAmount; // 수익금
+    private BigDecimal valuationAmount;
 
+    @Schema(description = "개별 수익금 (평가금액 - 투자원금)", example = "3250000")
     @Setter
-    private BigDecimal returnRate;   // 수익률 (%)
+    private BigDecimal returnAmount;
+
+    @Schema(description = "개별 수익률 (%)", example = "65.00")
+    @Setter
+    private BigDecimal returnRate;
 
     public MyDataResponseDTO(MyData myData) {
         this.myDataId = myData.getId();
-        this.memberId = myData.getMember().getId();
-        // this.stockCode = myData.getStockCode();
-        this.stockCode = myData.getStockData().getCode(); // stockData 객체에서 코드 가져오기
-        this.stockName = myData.getStockData().getName(); // stockData 객체에서 이름 가져오기
+        this.stockCode = myData.getStockData().getCode();
+        this.stockName = myData.getStockData().getName();
         this.purchaseAmount = myData.getPurchaseAmount();
         this.avgPrice = myData.getAvgPrice();
-    }
 
+    }
 }

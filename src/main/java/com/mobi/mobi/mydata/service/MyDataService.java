@@ -39,7 +39,7 @@ public class MyDataService {
 
     @Transactional
     public MyDataResponseDTO addMyData(Long memberId, MyDataRequestDTO requestDTO) {
-        // ... (이 메소드는 기존과 동일)
+
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.MEMBER_NOT_FOUND));
 
@@ -92,7 +92,7 @@ public class MyDataService {
 
             requestDate = requestDate.minusDays(1);
         }
-        // -------------------------------------------------------------------
+
         System.out.println("===== KRX API 호출 종료 ====="); // 디버깅 로그
 
 
@@ -102,7 +102,6 @@ public class MyDataService {
                         KrxStockInfo::getCurrentPrice,
                         (price1, price2) -> price1 // 중복 키 발생 시 첫 번째 값 사용
                 ));
-
         // 디버깅: priceMap에 어떤 데이터가 들어있는지 확인
         if (!priceMap.isEmpty()) {
             System.out.println("Price Map에 저장된 첫번째 데이터 -> Key: " + priceMap.keySet().iterator().next() + ", Value: " + priceMap.values().iterator().next());
@@ -116,20 +115,27 @@ public class MyDataService {
                     MyDataResponseDTO dto = new MyDataResponseDTO(myData);
                     String currentPriceStr = priceMap.get(myData.getStockData().getCode());
 
+                    BigDecimal avgPrice = myData.getAvgPrice();
+                    BigDecimal purchaseAmount = myData.getPurchaseAmount();
+
+                    // 1. 개별 투자원금 (평단가 * 수량)
+                    BigDecimal principalAmount = avgPrice.multiply(purchaseAmount);
+
                     if (currentPriceStr != null && !currentPriceStr.isEmpty()) {
                         BigDecimal currentPrice = new BigDecimal(currentPriceStr.replace(",", ""));
                         dto.setCurrentPrice(currentPrice);
 
-                        BigDecimal avgPrice = myData.getAvgPrice();
-                        BigDecimal purchaseAmount = myData.getPurchaseAmount();
+                        // 2. 개별 총 평가금액 (현재가 * 수량)
+                        BigDecimal valuationAmount = currentPrice.multiply(purchaseAmount);
+                        dto.setValuationAmount(valuationAmount);
 
-                        // 1. 개별 수익금 계산: (현재가 - 평단가) * 수량
-                        BigDecimal returnAmount = (currentPrice.subtract(avgPrice)).multiply(purchaseAmount);
+                        // 3. 개별 수익금 (평가금액 - 투자원금)
+                        BigDecimal returnAmount = valuationAmount.subtract(principalAmount);
                         dto.setReturnAmount(returnAmount);
 
-                        // 2. 개별 수익률 계산: ((현재가 / 평단가) - 1) * 100
-                        if (avgPrice.compareTo(BigDecimal.ZERO) > 0) { // 평단가가 0이 아닐 때만 계산
-                            BigDecimal returnRate = (currentPrice.divide(avgPrice, 4, RoundingMode.HALF_UP))
+                        // 4. 개별 수익률 ((평가금액 / 투자원금) - 1) * 100
+                        if (principalAmount.compareTo(BigDecimal.ZERO) > 0) { // 원금이 0보다 클 때만 계산
+                            BigDecimal returnRate = (valuationAmount.divide(principalAmount, 4, RoundingMode.HALF_UP))
                                     .subtract(BigDecimal.ONE)
                                     .multiply(new BigDecimal("100"));
                             dto.setReturnRate(returnRate);
@@ -144,15 +150,15 @@ public class MyDataService {
         BigDecimal totalPrincipalAmount = BigDecimal.ZERO; // 총 투자원금
 
         for (MyDataResponseDTO dto : myDataResponseDTOList) {
-            if (dto.getCurrentPrice() != null) {
-                totalValuationAmount = totalValuationAmount.add(dto.getCurrentPrice().multiply(dto.getPurchaseAmount()));
+            if (dto.getValuationAmount() != null) {
+                totalValuationAmount = totalValuationAmount.add(dto.getValuationAmount());
             }
             totalPrincipalAmount = totalPrincipalAmount.add(dto.getAvgPrice().multiply(dto.getPurchaseAmount()));
         }
 
         BigDecimal totalReturnAmount = totalValuationAmount.subtract(totalPrincipalAmount); // 총 수익금
         BigDecimal totalReturnRate = BigDecimal.ZERO;
-        if (totalPrincipalAmount.compareTo(BigDecimal.ZERO) > 0) {
+        if (totalPrincipalAmount.compareTo(BigDecimal.ZERO) > 0) { // 총 투자원금이 0보다 클 때만
             totalReturnRate = (totalValuationAmount.divide(totalPrincipalAmount, 4, RoundingMode.HALF_UP))
                     .subtract(BigDecimal.ONE)
                     .multiply(new BigDecimal("100"));
