@@ -4,14 +4,19 @@ spring:
 
   data:
     redis:
-      host: redis
+      host: ${SPRING_DATA_REDIS_HOST}
       port: 6379
+      ssl: true
 
+  #datasource:
+  #  url: ${DB_URL}?serverTimezone=Asia/Seoul
+  #  username: ${DB_USERNAME}
+  #  password: ${DB_PWD}
+  #  driver-class-name: com.mysql.cj.jdbc.Driver
   datasource:
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PWD}
     driver-class-name: com.mysql.cj.jdbc.Driver
+
+
   jpa:
     hibernate:
       ddl-auto: update
@@ -20,11 +25,30 @@ spring:
       hibernate:
         format_sql: true
 
-
   servlet:
     multipart:
       maxFileSize: 10MB
       maxRequestSize: 50MB
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope:
+              - email
+              - profile
+            redirect-uri: ${GOOGLE_REDIRECT_URI}
+
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      chat:
+        options:
+          model: gpt-4o-mini
+
 
 aws:
   s3:
@@ -35,21 +59,34 @@ aws:
     secret-key: ${AWS_SECRET_KEY}
   region: ap-northeast-2
 
+cloud:
+  aws:
+    credentials:
+      access-key: ${AWS_ACCESS_KEY}
+      secret-key: ${AWS_SECRET_KEY}
+    s3:
+      bucket: ${S3_BUCKET}
+
 jwt:
   secret: ${JWT_SECRET_KEY}
-  access-token:
-    expiration: ${JWT_ACCESS_EXPIRATION}
-  refresh-token:
-    expiration: ${JWT_REFRESH_EXPIRATION}
+  access-token-validity-in-seconds: 3600
+  refresh-token-validity-in-seconds: 1209600
+  #access-token:
+  #  expiration: ${JWT_ACCESS_EXPIRATION}
+  #refresh-token:
+  #  expiration: ${JWT_REFRESH_EXPIRATION}
+
+
+#server:
+#  port: 8080
 
 server:
-  port: 8080
+  port: ${SERVER_PORT:5000}
 
 urls:
   frontend: ${URLS_FRONTEND}
   backend: ${URLS_BACKEND}
 
-google:
-  client-id: ${GOOGLE_CLIENT_ID}
-  client-secret: ${GOOGLE_CLIENT_SECRET}
-  redirect-uri: ${GOOGLE_REDIRECT_URI}
+api:
+  krx:
+    key: ${KRX_API_KEY}

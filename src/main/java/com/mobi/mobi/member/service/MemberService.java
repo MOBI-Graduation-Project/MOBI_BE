@@ -3,6 +3,7 @@ package com.mobi.mobi.member.service;
 import com.mobi.mobi.apiPayload.handler.FriendHandler;
 import com.mobi.mobi.apiPayload.handler.MemberHandler;
 import com.mobi.mobi.apiPayload.status.ErrorStatus;
+import com.mobi.mobi.common.service.S3Service;
 import com.mobi.mobi.friend.entity.enums.FriendStatus;
 import com.mobi.mobi.member.dto.MemberProfileResponseDTO;
 import com.mobi.mobi.member.dto.MemberSearchResponseDTO;
@@ -15,6 +16,7 @@ import com.mobi.mobi.friend.repository.FriendRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +29,7 @@ public class MemberService {
 
     private final MemberRepository memberRepository;
     private final FriendRepository friendRepository;
+    private final S3Service s3Service;
 
     public NicknameCheckResponseDTO checkNicknameDuplication(String nickname) {
         boolean isDuplicated = memberRepository.existsByNickname(nickname);
@@ -99,5 +102,21 @@ public class MemberService {
             }
             return MemberSearchResponseDTO.of(member, status);
         }).collect(Collectors.toList());
+    }
+
+    @Transactional
+    public MemberProfileResponseDTO updateProfileImage(Long memberId, MultipartFile imageFile) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new MemberHandler(ErrorStatus.MEMBER_NOT_FOUND));
+
+        // S3에 이미지 업로드하고 URL을 받아옵니다.
+        String imageUrl = s3Service.uploadFile(imageFile);
+
+        // 멤버 엔티티의 프로필 이미지 URL을 업데이트합니다.
+        member.setProfileImgUrl(imageUrl);
+
+        // 변경된 멤버 정보로 DTO를 생성하여 반환합니다.
+        // @Transactional에 의해 메서드 종료 시 변경된 내용이 DB에 반영됩니다.
+        return MemberProfileResponseDTO.of(member, RelationStatus.SELF);
     }
 }

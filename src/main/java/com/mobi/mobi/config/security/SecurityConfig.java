@@ -35,6 +35,7 @@ public class SecurityConfig {
                         .requestMatchers("/auth/**").permitAll()
                         // Swagger UI 접근 허용
                         .requestMatchers(
+                                "/",
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
