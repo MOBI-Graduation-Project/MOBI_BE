@@ -40,7 +40,8 @@ spring:
             scope:
               - email
               - profile
-            redirect-uri: ${GOOGLE_REDIRECT_URI}
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+
 
   ai:
     openai:
@@ -49,6 +50,13 @@ spring:
         options:
           model: gpt-4o-mini
 
+server:
+  port: ${SERVER_PORT:5000}
+  forward-headers-strategy: native
+  tomcat:
+    remoteip:
+      remote-ip-header: X-Forwarded-For
+      protocol-header: X-Forwarded-Proto
 
 aws:
   s3:
@@ -77,15 +85,10 @@ jwt:
   #  expiration: ${JWT_REFRESH_EXPIRATION}
 
 
-#server:
-#  port: 8080
-
-server:
-  port: ${SERVER_PORT:5000}
-
 urls:
   frontend: ${URLS_FRONTEND}
-  backend: ${URLS_BACKEND}
+  backend: "https://mobi-env.eba-syirxtxr.ap-northeast-2.elasticbeanstalk.com/"
+
 
 api:
   krx:

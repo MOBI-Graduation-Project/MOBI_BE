@@ -25,8 +25,18 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
-                .setAllowedOriginPatterns("*")
-                .withSockJS();
+                .setAllowedOriginPatterns(
+                        // 운영
+                        "https://mobi.ai.kr",
+                        "https://www.mobi.ai.kr",
+                        "https://api.mobi.ai.kr",
+                        // 로컬
+                        "http://localhost:3000",
+                        "http://127.0.0.1:3000",
+                        "http://localhost:5173",
+                        "http://127.0.0.1:5173"
+                )
+                .withSockJS(); // /ws, /ws/info 등 핸드셰이크 경로 자동 포함
     }
 
     @Override
@@ -34,5 +44,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registration.interceptors(stompHandler);
     }
 }
+
 // /ws-chat: 클라이언트가 최초로 WebSocket 연결을 맺는 주소
 // /pub: 클라이언트가 서버로 메시지를 보낼 때 사용하는 경로
