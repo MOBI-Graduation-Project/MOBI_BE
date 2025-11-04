@@ -27,25 +27,29 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(request -> {
+                    var c = new org.springframework.web.cors.CorsConfiguration();
+                    c.setAllowCredentials(true);
+                    c.addAllowedOriginPattern("https://mobi.ai");
+                    c.addAllowedOriginPattern("https://mobi-env.eba-syirxtxr.ap-northeast-2.elasticbeanstalk.com");
+                    c.addAllowedHeader("*");
+                    c.addAllowedMethod("*");
+                    return c;
+                }))
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
-                .sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(authorize -> authorize
-                        // /auth/** API는 인증 없이 누구나 접근 가능하도록 허용
-                        .requestMatchers("/auth/**").permitAll()
-                        // Swagger UI 접근 허용
+                .sessionManagement(m -> m.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(
-                                "/",
-                                "/swagger-ui.html",
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**",
-                                "/swagger-resources/**",
-                                "/webjars/**"
+                                "/", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**",
+                                "/swagger-resources/**", "/webjars/**"
                         ).permitAll()
+                        .requestMatchers("/auth/**").permitAll()
+                        //  OAuth 경로 허용
+                        .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
                         .requestMatchers("/ws/**").permitAll()
-                        // 채팅 관련 API는 인증된 사용자만 접근 가능
                         .requestMatchers("/chat/**").authenticated()
-                        // 위에서 지정한 경로 외의 모든 요청은 인증을 받아야 함
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
