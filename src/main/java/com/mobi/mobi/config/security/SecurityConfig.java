@@ -3,16 +3,16 @@ package com.mobi.mobi.config.security;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.messaging.simp.SimpMessageType;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.annotation.web.messaging.MessageSecurityMetadataSourceRegistry;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import com.mobi.mobi.config.security.jwt.JwtAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
 
+import com.mobi.mobi.config.security.jwt.JwtAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -28,27 +28,38 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(request -> {
-                    var c = new org.springframework.web.cors.CorsConfiguration();
+                    CorsConfiguration c = new CorsConfiguration();
                     c.setAllowCredentials(true);
-                    c.addAllowedOriginPattern("https://mobi.ai");
-                    c.addAllowedOriginPattern("https://mobi-env.eba-syirxtxr.ap-northeast-2.elasticbeanstalk.com");
-                    c.addAllowedHeader("*");
-                    c.addAllowedMethod("*");
+
+                    // 운영 도메인
+                    c.addAllowedOriginPattern("https://mobi.ai.kr");     // 프론트
+                    c.addAllowedOriginPattern("https://www.mobi.ai.kr"); // www 사용 시
+                    c.addAllowedOriginPattern("https://api.mobi.ai.kr"); // API(CloudFront, Swagger 접근)
+
+                    // 로컬 개발
+                    c.addAllowedOriginPattern("http://localhost:3000");
+                    c.addAllowedOriginPattern("http://127.0.0.1:3000");
+                    c.addAllowedOriginPattern("http://localhost:5173");   // Vite
+                    c.addAllowedOriginPattern("http://127.0.0.1:5173");
+
+                    c.addAllowedHeader("*");   // Authorization 등
+                    c.addAllowedMethod("*");   // GET/POST/PUT/PATCH/DELETE/OPTIONS
+                    // 프론트에서 읽어야 하는 헤더 노출
+                    c.addExposedHeader("Authorization");
+                    c.addExposedHeader("Location");
+                    c.addExposedHeader("Set-Cookie");
                     return c;
                 }))
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .sessionManagement(m -> m.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers(
-                                "/", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**",
-                                "/swagger-resources/**", "/webjars/**"
-                        ).permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**",
+                                "/swagger-resources/**", "/webjars/**").permitAll()
                         .requestMatchers("/auth/**").permitAll()
-                        //  OAuth 경로 허용
                         .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
-                        .requestMatchers("/ws/**").permitAll()
+                        .requestMatchers("/ws/**").permitAll()  // SockJS 핸드셰이크(/ws, /ws/info 등)
                         .requestMatchers("/chat/**").authenticated()
                         .anyRequest().authenticated()
                 )
@@ -58,8 +69,7 @@ public class SecurityConfig {
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
-
         return http.build();
     }
-
 }
+
