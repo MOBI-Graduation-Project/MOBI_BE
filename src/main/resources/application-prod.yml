@@ -86,9 +86,8 @@ jwt:
 
 
 urls:
-  frontend: ${URLS_FRONTEND}
-  backend: "https://mobi-env.eba-syirxtxr.ap-northeast-2.elasticbeanstalk.com/"
-
+  frontend: "https://mobi.ai.kr"
+  backend:  "https://api.mobi.ai.kr"
 
 api:
   krx:
