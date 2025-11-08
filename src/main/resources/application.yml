@@ -5,3 +5,13 @@ cloud:
   aws:
     region:
       static: ap-northeast-2
+server:
+  forward-headers-strategy: native
+  use-forward-headers: true
+  tomcat:
+    protocol-header: x-forwarded-proto
+    remote-ip-header: x-forwarded-for
+
+urls:
+  frontend: "https://mobi.ai.kr"
+  backend: "https://api.mobi.ai.kr"

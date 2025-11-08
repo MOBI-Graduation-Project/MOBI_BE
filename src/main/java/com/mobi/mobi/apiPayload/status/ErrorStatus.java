@@ -15,6 +15,18 @@ public enum ErrorStatus implements BaseErrorCode {
     _UNAUTHORIZED(HttpStatus.UNAUTHORIZED,"COMMON401","인증이 필요합니다."),
     _FORBIDDEN(HttpStatus.FORBIDDEN, "COMMON403", "금지된 요청입니다."),
 
+    // === Google OAuth / 로그인 관련 에러 ===
+    OAUTH_PROVIDER_ERROR(HttpStatus.BAD_REQUEST, "OAUTH4001", "구글 OAuth 서버와 통신 중 오류가 발생했습니다."),
+    OAUTH_INVALID_CODE(HttpStatus.BAD_REQUEST, "OAUTH4002", "유효하지 않은 인증 코드입니다."),
+    OAUTH_TOKEN_EXCHANGE_FAILED(HttpStatus.BAD_REQUEST, "OAUTH4003", "구글 토큰 교환에 실패했습니다."),
+    OAUTH_USERINFO_FAILED(HttpStatus.BAD_REQUEST, "OAUTH4004", "구글 사용자 정보를 가져오지 못했습니다."),
+
+    // === JWT 관련 에러 ===
+    JWT_CREATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "JWT5001", "JWT 발급 중 오류가 발생했습니다."),
+    JWT_REFRESH_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "JWT4001", "리프레시 토큰이 만료되었습니다."),
+    JWT_REFRESH_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "JWT4002", "리프레시 토큰이 존재하지 않습니다."),
+
+
     // 유효성 검사 에러(메시지는 @interface의 message로 처리)
     VALIDATOR_ERROR(HttpStatus.BAD_REQUEST,"VALID400",null),
 
