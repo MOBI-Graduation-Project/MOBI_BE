@@ -17,6 +17,9 @@ public class MyDataListResponseDTO {
     @Schema(description = "개별 보유 주식 목록")
     private List<MyDataResponseDTO> myDataList;
 
+    @Schema(description = "파이 차트 전용 데이터 리스트")
+    private List<PieChartDTO> pieChart;
+
     @Schema(description = "총 평가금액 (포트폴리오 전체)", example = "15000000")
     private BigDecimal totalValuationAmount;
 

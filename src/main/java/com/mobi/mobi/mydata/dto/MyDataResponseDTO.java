@@ -1,9 +1,10 @@
 package com.mobi.mobi.mydata.dto;
 
 import com.mobi.mobi.mydata.entity.MyData;
-import io.swagger.v3.oas.annotations.media.Schema; // Schema 임포트
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
+
 import java.math.BigDecimal;
 
 @Getter
@@ -37,9 +38,13 @@ public class MyDataResponseDTO {
     @Setter
     private BigDecimal returnAmount;
 
-    @Schema(description = "개별 수익률 (%)", example = "65.00")
+    @Schema(description = "개별 수익률 (%)", example = "65")
     @Setter
     private BigDecimal returnRate;
+
+    @Schema(description = "포트폴리오 내 보유 비중 (%)", example = "21")
+    @Setter
+    private BigDecimal holdingWeight;
 
     public MyDataResponseDTO(MyData myData) {
         this.myDataId = myData.getId();
@@ -47,6 +52,5 @@ public class MyDataResponseDTO {
         this.stockName = myData.getStockData().getName();
         this.purchaseAmount = myData.getPurchaseAmount();
         this.avgPrice = myData.getAvgPrice();
-
     }
 }
