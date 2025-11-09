@@ -5,6 +5,7 @@ import com.mobi.mobi.apiPayload.status.SuccessStatus;
 import com.mobi.mobi.mydata.dto.MyDataListResponseDTO;
 import com.mobi.mobi.mydata.dto.MyDataRequestDTO;
 import com.mobi.mobi.mydata.dto.MyDataResponseDTO;
+import com.mobi.mobi.mydata.dto.PieChartDTO;
 import com.mobi.mobi.mydata.service.MyDataService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -15,6 +16,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Tag(name = "MyData API", description = "마이데이터(보유 주식) 관련 API")
 @RestController
@@ -42,6 +45,15 @@ public class MyDataController {
         Long memberId = Long.parseLong(user.getUsername());
         MyDataListResponseDTO responseDTO = myDataService.getMyData(memberId);
         return ApiResponse.onSuccess(SuccessStatus._OK, responseDTO);
+    }
+
+    @GetMapping("/piechart")
+    @Operation(summary = "보유 주식 파이차트 데이터 조회 API", description = "사용자의 보유 종목을 종목 단위로 합산하여 파이차트용 비중 데이터를 제공합니다.")
+    public ApiResponse<List<PieChartDTO>> showMyDataPieChart(
+            @AuthenticationPrincipal User user) {
+        Long memberId = Long.parseLong(user.getUsername());
+        List<PieChartDTO> pieChartDTOList = myDataService.getMyDataPieChart(memberId);
+        return ApiResponse.onSuccess(SuccessStatus._OK, pieChartDTOList);
     }
 
     @PutMapping("/{myDataId}")

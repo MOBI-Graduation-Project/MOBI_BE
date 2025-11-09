@@ -17,7 +17,7 @@ public class KrxApiClient {
     private String serviceKey;
 
     public KrxApiClient() {
-        // ▼▼▼ [최종 수정] WebClient의 메모리 버퍼 사이즈를 10MB로 늘립니다. ▼▼▼
+
         ExchangeStrategies exchangeStrategies = ExchangeStrategies.builder()
                 .codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(10 * 1024 * 1024)) // 10MB
                 .build();
@@ -45,7 +45,7 @@ public class KrxApiClient {
                 .bodyToMono(KrxApiResponse.class)
                 .block();
 
-        // ▼▼▼ [최종 수정] 성공/실패 판단 로직 변경 ▼▼▼
+
         // 응답이 없거나, 데이터 블록(OutBlock_1)이 비어있으면 실패로 간주
         if (response == null || response.getOutBlock1() == null) {
             System.out.println("KRX API 호출에 실패했거나 데이터가 없습니다.");

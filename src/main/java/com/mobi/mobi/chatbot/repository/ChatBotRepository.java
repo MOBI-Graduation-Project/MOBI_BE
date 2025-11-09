@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface ChatBotRepository extends JpaRepository<ChatBotEntity, Long> {
     List<ChatBotEntity> findByUserIdOrderByCreatedAtAsc(String userId);
+
+    List<ChatBotEntity> findTop10ByUserIdOrderByCreatedAtDesc(String userId);
 }

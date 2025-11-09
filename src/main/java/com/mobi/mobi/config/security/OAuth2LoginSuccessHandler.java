@@ -50,8 +50,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         String accessToken = jwtTokenProvider.createAccessToken(member.getId().toString());
         log.info("JWT 토큰이 발급되었습니다: {}", accessToken);
 
-        // 실제 서비스에서는 프론트엔드의 특정 페이지로 리디렉션하며 토큰을 전달해야 합니다.
-        // 지금은 토큰만 응답으로 보내보겠습니다. (테스트용)
+
         response.setContentType("application/json;charset=UTF-8");
         response.getWriter().write("{\"accessToken\": \"" + accessToken + "\"}");
     }
