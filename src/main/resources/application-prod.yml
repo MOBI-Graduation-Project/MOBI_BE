@@ -40,7 +40,7 @@ spring:
             scope:
               - email
               - profile
-            redirect-uri: https://api.mobi.ai.kr/auth/callback
+            redirect-uri: https://mobi.ai.kr/auth/callback
 
 
   ai:

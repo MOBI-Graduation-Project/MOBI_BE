@@ -31,38 +31,37 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(req -> {
                     CorsConfiguration c = new CorsConfiguration();
                     c.setAllowCredentials(true);
-                    c.setAllowedOrigins(List.of(
+                    c.setAllowedOriginPatterns(List.of(
                             "https://mobi.ai.kr",
                             "https://www.mobi.ai.kr",
                             "https://api.mobi.ai.kr",
-                            "http://localhost:3000",
-                            "http://127.0.0.1:3000",
-                            "http://localhost:5173",
-                            "http://127.0.0.1:5173"
+                            "https://*.cloudfront.net",
+                            "http://mobi-env.eba-syirxtxr.ap-northeast-2.elasticbeanstalk.com",
+                            "http://localhost:*",
+                            "http://127.0.0.1:*"
                     ));
+
                     c.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
                     c.setAllowedHeaders(List.of("*"));
                     c.setExposedHeaders(List.of("Authorization","Location","Set-Cookie"));
                     c.setMaxAge(3600L);
                     return c;
                 }))
-                .formLogin(AbstractHttpConfigurer::disable)
-                .httpBasic(AbstractHttpConfigurer::disable)
-                .sessionManagement(m -> m.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()  // Preflight 통과
                         .requestMatchers(
                                 "/", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**",
                                 "/swagger-resources/**", "/webjars/**"
                         ).permitAll()
-                        .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll() // ★ 프리플라이트
-                        .requestMatchers("/auth/**").permitAll() // OAuth JSON 플로우 허용
-                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/members/check-nickname").permitAll()
-                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/members/check-nickname").permitAll()
+                        .requestMatchers("/auth/**", "/oauth2/**", "/login/**").permitAll() // OAuth 경로 전부 허용
+                        .requestMatchers(HttpMethod.GET, "/members/check-nickname").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/members/check-nickname").permitAll()
                         .requestMatchers("/healthz").permitAll()
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers("/chat/**").authenticated()
                         .anyRequest().authenticated()
                 )
+
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((req, res, e) -> {
                             res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

@@ -8,34 +8,61 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final AntPathMatcher pathMatcher = new AntPathMatcher();
+
+    // JWT 필터를 "건너뛰어야 하는 경로" 목록
+    private static final List<String> EXCLUDE_URLS = List.of(
+            "/auth/**", "/oauth2/**", "/login/**",
+            "/swagger-ui/**", "/v3/api-docs/**",
+            "/healthz", "/ws/**"
+    );
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        // 1. Request Header에서 JWT 토큰 추출
+        String requestURI = request.getRequestURI();
+
+        // 1. JWT 필터를 적용하지 않아야 하는 경로는 그냥 통과
+        if (shouldSkip(requestURI)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        // 2. Authorization 헤더에서 토큰 추출
         String token = resolveToken(request);
 
-        // 2. validateToken 으로 토큰 유효성 검사
-        if (token != null && jwtTokenProvider.validateToken(token)) {
-            // 토큰이 유효할 경우 토큰에서 Authentication 객체를 가지고 와서 SecurityContext 에 저장
+        // 3. 토큰이 없으면 인증 시도하지 않고 그냥 통과
+        if (token == null) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        // 4. 토큰이 유효할 때만 인증 설정
+        if (jwtTokenProvider.validateToken(token)) {
             Authentication authentication = jwtTokenProvider.getAuthentication(token);
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
+
         filterChain.doFilter(request, response);
     }
 
-    // Request Header 에서 토큰 정보 추출
+    private boolean shouldSkip(String uri) {
+        return EXCLUDE_URLS.stream().anyMatch(pattern -> pathMatcher.match(pattern, uri));
+    }
+
     private String resolveToken(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
@@ -44,3 +71,4 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         return null;
     }
 }
+
