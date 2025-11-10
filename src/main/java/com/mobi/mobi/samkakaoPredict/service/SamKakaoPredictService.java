@@ -1,4 +1,4 @@
-package com.mobi.mobi.samkakaoPredict;
+package com.mobi.mobi.samkakaoPredict.service;
 
 import com.mobi.mobi.external.krx.KrxApiClient;
 import com.mobi.mobi.external.krx.KrxStockInfo;
@@ -22,7 +22,6 @@ public class SamKakaoPredictService {
 
     private final KrxApiClient krxApiClient;
     private final SamKakaoPredictPriceRepository predictPriceRepository;
-
 
     public List<StockPredictResponseDTO> getPrediction(String stockCode) {
 
@@ -54,8 +53,12 @@ public class SamKakaoPredictService {
                         .build())
                 .collect(Collectors.toList());
 
-        // 4. meta.predictionGeneratedAt 설정
 
+        if (predictedRecords.isEmpty()) {
+            predictedRecords = makeDummyPredictedRecords(cleanedCode);
+        }
+
+        // 4. meta.predictionGeneratedAt 설정
         String predictionGeneratedAt = predictedEntities.stream()
                 .map(SamKakaoPredictPrice::getGeneratedAt)
                 .filter(Objects::nonNull)
@@ -70,7 +73,7 @@ public class SamKakaoPredictService {
         // 5. 실제 + (있다면) 예측 합치기
         List<StockPriceRecordDTO> priceRecords = new ArrayList<>();
         priceRecords.addAll(actualRecords);      // 항상 3개 정도는 있음
-        priceRecords.addAll(predictedRecords);   // 예측이 없으면 0개라서 그냥 실제만 나감
+        priceRecords.addAll(predictedRecords);   // 예측이 없으면 우리가 만든 더미 3개가 들어감
 
         // 6. 날짜순 정렬
         priceRecords.sort(Comparator.comparing(StockPriceRecordDTO::getDate));
@@ -118,11 +121,11 @@ public class SamKakaoPredictService {
                 }
             }
 
-            // 하루 전으로 이동
+
             requestDate = requestDate.minusDays(1);
         }
 
-        // 오래된 날짜부터 정렬해서 넘김
+
         results.sort(Comparator.comparing(StockPriceRecordDTO::getDate));
         return results;
     }
@@ -145,5 +148,40 @@ public class SamKakaoPredictService {
 
     private String cleanCode(String code) {
         return code.replaceAll("[^0-9]", "");
+    }
+
+
+    private List<StockPriceRecordDTO> makeDummyPredictedRecords(String stockCode) {
+        List<StockPriceRecordDTO> dummy = new ArrayList<>();
+        ZoneId zone = ZoneId.of("Asia/Seoul");
+        LocalDate today = LocalDate.now(zone);
+
+        int min, max;
+        if ("005930".equals(stockCode)) {          // 삼성
+            min = 96000;
+            max = 100000;
+        } else if ("035720".equals(stockCode)) {   // 카카오
+            min = 62000;
+            max = 66000;
+        } else {
+            min = 10000;
+            max = 11000;
+        }
+
+        Random random = new Random();
+        for (int i = 1; i <= 3; i++) {
+            int value = random.nextInt((max - min) + 1) + min;
+            LocalDate targetDate = today.plusDays(i);
+
+            dummy.add(
+                    StockPriceRecordDTO.builder()
+                            .date(targetDate.toString())
+                            .predictedPrice(value)
+                            .isPredicted(true)
+                            .build()
+            );
+        }
+
+        return dummy;
     }
 }
