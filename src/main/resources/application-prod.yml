@@ -40,7 +40,10 @@ spring:
             scope:
               - email
               - profile
-            redirect-uri: https://mobi.ai.kr/auth/callback
+              # ⬇️ (O) 이 위치가 맞습니다! (scope와 같은 레벨)
+              redirect-uri:
+                local: http://localhost:3000/auth/callback
+                prod: https://mobi.ai.kr/auth/callback
 
 
   ai:
