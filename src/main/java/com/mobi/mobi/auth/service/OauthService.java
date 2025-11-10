@@ -42,7 +42,7 @@ public class OauthService {
     @Value("${spring.security.oauth2.client.registration.google.client-secret}")
     private String GOOGLE_CLIENT_SECRET;
 
-    @Value("${spring.security.oauth2.client.registration.google.redirect-uri}")
+    @Value("${spring.security.oauth2.client.registration.google.redirect-uri:}")
     private String GOOGLE_REDIRECT_URI;
 
     /**
@@ -55,9 +55,8 @@ public class OauthService {
             if (code == null || code.isBlank()) {
                 throw new GeneralException(ErrorStatus._BAD_REQUEST);
             }
-            if (redirectUri == null || redirectUri.isBlank()) {
-                redirectUri = GOOGLE_REDIRECT_URI;
-            }
+
+            final String finalRedirectUri = resolveRedirectUri(redirectUri);
 
             // 1) code → token
             MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
@@ -65,9 +64,6 @@ public class OauthService {
             form.add("client_id", GOOGLE_CLIENT_ID);
             form.add("client_secret", GOOGLE_CLIENT_SECRET);
             form.add("grant_type", "authorization_code");
-            String finalRedirectUri = (redirectUri == null || redirectUri.isBlank())
-                    ? GOOGLE_REDIRECT_URI   // yml에 있는 기본값
-                    : redirectUri;
             form.add("redirect_uri", finalRedirectUri);
             if (codeVerifier != null && !codeVerifier.isBlank()) {
                 form.add("code_verifier", codeVerifier);
@@ -141,6 +137,16 @@ public class OauthService {
             log.error("Google login unexpected error", e);
             throw new GeneralException(ErrorStatus._INTERNAL_SERVER_ERROR);
         }
+    }
+
+    private String resolveRedirectUri(String reqRedirectUri) {
+        if (reqRedirectUri != null && !reqRedirectUri.isBlank()) {
+            return reqRedirectUri;
+        }
+        if (GOOGLE_REDIRECT_URI != null && !GOOGLE_REDIRECT_URI.isBlank()) {
+            return GOOGLE_REDIRECT_URI;
+        }
+        throw new GeneralException(ErrorStatus._BAD_REQUEST); // 메시지 커스터마이즈 원하면 별도 ErrorStatus 추가
     }
 
     @Transactional
