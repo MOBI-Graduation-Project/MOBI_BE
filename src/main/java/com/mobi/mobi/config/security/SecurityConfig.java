@@ -50,26 +50,16 @@ public class SecurityConfig {
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .sessionManagement(m -> m.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(
                                 "/", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**",
                                 "/swagger-resources/**", "/webjars/**"
                         ).permitAll()
-
-                        // OAuth JSON 플로우 (토큰 발급/리프레시)
-                        .requestMatchers("/auth/**").permitAll()
-
-                        // 닉네임 중복확인 API (컨트롤러 경로와 정확히 맞추세요)
-                        .requestMatchers(HttpMethod.GET,  "/members/check-nickname").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/members/check-nickname").permitAll()
-
-                        // (선택) 헬스체크
-                        .requestMatchers(HttpMethod.GET, "/healthz").permitAll()
-
-                        // 웹소켓 핸드셰이크
+                        .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll() // ★ 프리플라이트
+                        .requestMatchers("/auth/**").permitAll() // OAuth JSON 플로우 허용
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/members/check-nickname").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/members/check-nickname").permitAll()
+                        .requestMatchers("/healthz").permitAll()
                         .requestMatchers("/ws/**").permitAll()
-
-                        // 보호 경로
                         .requestMatchers("/chat/**").authenticated()
                         .anyRequest().authenticated()
                 )

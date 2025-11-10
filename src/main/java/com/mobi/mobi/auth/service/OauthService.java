@@ -42,21 +42,25 @@ public class OauthService {
     @Value("${spring.security.oauth2.client.registration.google.client-secret}")
     private String GOOGLE_CLIENT_SECRET;
 
+
     @Value("${spring.security.oauth2.client.registration.google.redirect-uri:}")
     private String GOOGLE_REDIRECT_URI;
 
     /**
-     * 프론트가 준 code(+optional redirectUri, codeVerifier)로
+     * 프론트가 준 code(+optional codeVerifier)로
      * 구글 토큰 교환 → OIDC userinfo 조회 → 우리 JWT(access/refresh) 발급 → JSON 반환
+     *
      */
     @Transactional
-    public GoogleLoginResponseDTO loginWithGoogle(String code, String redirectUri, String codeVerifier) {
+    public GoogleLoginResponseDTO loginWithGoogle(String code, String redirectUri /*unused*/, String codeVerifier) {
         try {
             if (code == null || code.isBlank()) {
                 throw new GeneralException(ErrorStatus._BAD_REQUEST);
             }
 
+
             final String finalRedirectUri = resolveRedirectUri(redirectUri);
+
 
             // 1) code → token
             MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
@@ -69,9 +73,13 @@ public class OauthService {
                 form.add("code_verifier", codeVerifier);
             }
 
+            log.debug("[GoogleTokenExchange] redirect_uri={}, code_verifier_len={}",
+                    finalRedirectUri, (codeVerifier == null ? 0 : codeVerifier.length()));
+
             Map<String, Object> tokenResp = webClient.post()
                     .uri("https://oauth2.googleapis.com/token")
                     .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .accept(MediaType.APPLICATION_JSON)
                     .body(BodyInserters.fromFormData(form))
                     .retrieve()
                     .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
@@ -87,6 +95,7 @@ public class OauthService {
             Map<String, Object> userInfo = webClient.get()
                     .uri("https://openidconnect.googleapis.com/v1/userinfo")
                     .headers(h -> h.setBearerAuth(googleAccessToken))
+                    .accept(MediaType.APPLICATION_JSON)
                     .retrieve()
                     .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
                     .block();
@@ -101,7 +110,7 @@ public class OauthService {
             String name    = (String) userInfo.getOrDefault("name", "GoogleUser");
             String picture = (String) userInfo.get("picture");
 
-            // 3) 회원 upsert (이메일 기반으로 안전하게)
+            // 3) 회원 upsert (이메일 기준)
             UpsertResult up = upsertGoogleMember(sub, email, name, picture);
             Member member   = up.member();
             boolean isNew   = up.isNew();
@@ -110,10 +119,9 @@ public class OauthService {
             String accessToken  = jwtTokenProvider.createAccessToken(String.valueOf(member.getId()));
             String refreshToken = jwtTokenProvider.createRefreshToken(String.valueOf(member.getId()));
 
-            // 5) refresh 저장 (Member 컬럼 보관 가정)
+            // 5) refresh 저장 (엔티티/외부저장소에 맞게)
             try {
-                // 엔티티에 필드가 있을 경우 사용
-                // member.setRefreshToken(refreshToken);
+                // member.setRefreshToken(refreshToken); // 필드가 있으면 사용
                 memberRepository.save(member);
             } catch (Exception ignore) {
                 // Redis 등 별도 저장소 사용 시:
@@ -129,7 +137,20 @@ public class OauthService {
                     .build();
 
         } catch (WebClientResponseException e) {
-            log.error("Google token exchange failed: status={} body={}", e.getStatusCode(), e.getResponseBodyAsString());
+            final String body = e.getResponseBodyAsString();
+            log.warn("[GoogleOAuthError] status={} body={}", e.getRawStatusCode(), body);
+
+            // 원인별 가독성 향상
+            if (body != null) {
+                if (body.contains("redirect_uri_mismatch")) {
+                    log.warn("[Cause] redirect_uri_mismatch: 토큰 교환 redirect_uri 설정 문제");
+                    throw new GeneralException(ErrorStatus.OAUTH_REDIRECT_URI_MISMATCH);
+                }
+                if (body.contains("invalid_grant")) {
+                    log.warn("[Cause] invalid_grant: code 재사용/만료 또는 PKCE 불일치 가능");
+                    throw new GeneralException(ErrorStatus.OAUTH_INVALID_GRANT);
+                }
+            }
             throw new GeneralException(ErrorStatus.OAUTH_PROVIDER_ERROR);
         } catch (GeneralException e) {
             throw e;
@@ -140,13 +161,18 @@ public class OauthService {
     }
 
     private String resolveRedirectUri(String reqRedirectUri) {
+        // 프론트가 로컬 테스트용 redirectUri를 보내온 경우 허용
         if (reqRedirectUri != null && !reqRedirectUri.isBlank()) {
-            return reqRedirectUri;
+            // 로컬 테스트 허용 리스트
+            if (reqRedirectUri.startsWith("http://localhost:3000")) {
+                return reqRedirectUri;  //프론트 로컬 테스트 허용
+            }
         }
+        // 그 외엔 prod 고정
         if (GOOGLE_REDIRECT_URI != null && !GOOGLE_REDIRECT_URI.isBlank()) {
-            return GOOGLE_REDIRECT_URI;
+            return GOOGLE_REDIRECT_URI; // e.g. https://api.mobi.ai.kr/auth/callback
         }
-        throw new GeneralException(ErrorStatus._BAD_REQUEST); // 메시지 커스터마이즈 원하면 별도 ErrorStatus 추가
+        throw new GeneralException(ErrorStatus._BAD_REQUEST);
     }
 
     @Transactional
