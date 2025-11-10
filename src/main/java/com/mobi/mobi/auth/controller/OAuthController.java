@@ -25,8 +25,8 @@ public class OAuthController {
 
     @PostMapping("/google")
     @Operation(summary = "구글 소셜 로그인", description = "클라이언트에서 받은 Authorization Code로 로그인을 처리하고 JWT 토큰을 발급합니다.")
-    public ApiResponse<GoogleLoginResponseDTO> googleLogin(@RequestBody GoogleLoginRequestDTO req) {
-        var response = oauthService.loginWithGoogle(req.getCode(), req.getRedirectUri(), req.getCodeVerifier());
+    public ApiResponse<GoogleLoginResponseDTO> googleLogin(@RequestBody GoogleLoginRequestDTO request) {
+        GoogleLoginResponseDTO response = oauthService.loginWithGoogle(request.getCode());
         return ApiResponse.onSuccess(SuccessStatus._OK, response);
     }
 
