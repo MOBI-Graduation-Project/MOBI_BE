@@ -65,7 +65,10 @@ public class OauthService {
             form.add("client_id", GOOGLE_CLIENT_ID);
             form.add("client_secret", GOOGLE_CLIENT_SECRET);
             form.add("grant_type", "authorization_code");
-            form.add("redirect_uri", redirectUri);
+            String finalRedirectUri = (redirectUri == null || redirectUri.isBlank())
+                    ? GOOGLE_REDIRECT_URI   // yml에 있는 기본값
+                    : redirectUri;
+            form.add("redirect_uri", finalRedirectUri);
             if (codeVerifier != null && !codeVerifier.isBlank()) {
                 form.add("code_verifier", codeVerifier);
             }
