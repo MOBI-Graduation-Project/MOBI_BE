@@ -12,12 +12,27 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
+
+    private static final List<String> EXCLUDE_URLS = List.of(
+            // Swagger UI 관련
+            "/", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**",
+            "/swagger-resources/**", "/webjars/**",
+
+            // Auth 관련
+            "/auth/**", "/oauth2/**", "/login/**",
+
+            // 기타 permitAll 경로
+            "/members/check-nickname", // SecurityConfig에 있었죠
+            "/healthz",
+            "/ws/**"
+    );
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)

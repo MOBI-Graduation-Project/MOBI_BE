@@ -20,6 +20,9 @@ public enum ErrorStatus implements BaseErrorCode {
     OAUTH_INVALID_CODE(HttpStatus.BAD_REQUEST, "OAUTH4002", "유효하지 않은 인증 코드입니다."),
     OAUTH_TOKEN_EXCHANGE_FAILED(HttpStatus.BAD_REQUEST, "OAUTH4003", "구글 토큰 교환에 실패했습니다."),
     OAUTH_USERINFO_FAILED(HttpStatus.BAD_REQUEST, "OAUTH4004", "구글 사용자 정보를 가져오지 못했습니다."),
+    OAUTH_REDIRECT_URI_MISMATCH(HttpStatus.BAD_REQUEST, "OAUTH4005", "리디렉션 URI가 일치하지 않습니다."),
+    OAUTH_INVALID_GRANT(HttpStatus.BAD_REQUEST, "OAUTH4006", "인증 코드가 만료되었거나 이미 사용되었습니다."),
+
 
     // === JWT 관련 에러 ===
     JWT_CREATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "JWT5001", "JWT 발급 중 오류가 발생했습니다."),

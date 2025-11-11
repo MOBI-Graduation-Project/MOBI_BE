@@ -1,3 +1,4 @@
+
 package com.mobi.mobi.auth.dto;
 
 import com.mobi.mobi.member.entity.Member;
@@ -8,6 +9,7 @@ import lombok.Getter;
 
 @Getter
 public class GoogleLoginResponseDTO {
+
     @Schema(description = "최초 가입 유저인지 여부")
     private final Boolean isNewMember;
 
@@ -15,7 +17,7 @@ public class GoogleLoginResponseDTO {
     private final String accessToken;
 
     @Schema(description = "Mobi 서비스 Refresh Token")
-    private String refreshToken;
+    private final String refreshToken;
 
     private final MemberInfo member;
 
@@ -40,7 +42,6 @@ public class GoogleLoginResponseDTO {
             this.loginType = member.getLoginType();
         }
     }
-
 
     @Builder
     public GoogleLoginResponseDTO(Boolean isNewMember, String accessToken, String refreshToken, Member member) {

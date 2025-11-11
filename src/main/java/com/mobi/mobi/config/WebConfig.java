@@ -12,9 +12,12 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addMapping("/**")
                 .allowedOrigins(
                         "https://mobi.ai.kr", // 프론트
-                        "http://localhost:3000" // 로컬 테스트
+                        "https://api.mobi.ai.kr",
+                        "http://localhost:3000", // 로컬 테스트
+                        "http://localhost:8080"
                 )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
+                .allowedHeaders("*")
                 .allowCredentials(true);
     }
 }
