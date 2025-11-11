@@ -1,6 +1,5 @@
 package com.mobi.mobi.config.security;
 
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,68 +14,58 @@ import org.springframework.web.cors.CorsConfiguration;
 
 import com.mobi.mobi.config.security.jwt.JwtAuthenticationFilter;
 
-import java.util.List;
-
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
+    private final OAuth2LoginFailureHandler oAuth2LoginFailureHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
-                .cors(cors -> cors.configurationSource(req -> {
+                .cors(cors -> cors.configurationSource(request -> {
                     CorsConfiguration c = new CorsConfiguration();
                     c.setAllowCredentials(true);
-                    c.setAllowedOriginPatterns(List.of(
-                            "https://mobi.ai.kr",
-                            "https://www.mobi.ai.kr",
-                            "https://api.mobi.ai.kr",
-                            "https://*.cloudfront.net",
-                            "http://mobi-env.eba-syirxtxr.ap-northeast-2.elasticbeanstalk.com",
-                            "http://localhost:*",
-                            "http://127.0.0.1:*"
-                    ));
 
-                    c.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
-                    c.setAllowedHeaders(List.of("*"));
-                    c.setExposedHeaders(List.of("Authorization","Location","Set-Cookie"));
-                    c.setMaxAge(3600L);
+                    // 운영 도메인
+                    c.addAllowedOriginPattern("https://mobi.ai.kr");     // 프론트
+                    c.addAllowedOriginPattern("https://www.mobi.ai.kr"); // www 사용 시
+                    c.addAllowedOriginPattern("https://api.mobi.ai.kr"); // API(CloudFront, Swagger 접근)
+
+                    // 로컬 개발
+                    c.addAllowedOriginPattern("http://localhost:3000");
+                    c.addAllowedOriginPattern("http://127.0.0.1:3000");
+                    c.addAllowedOriginPattern("http://localhost:5173");   // Vite
+                    c.addAllowedOriginPattern("http://127.0.0.1:5173");
+
+                    c.addAllowedHeader("*");   // Authorization 등
+                    c.addAllowedMethod("*");   // GET/POST/PUT/PATCH/DELETE/OPTIONS
+                    // 프론트에서 읽어야 하는 헤더 노출
+                    c.addExposedHeader("Authorization");
+                    c.addExposedHeader("Location");
+                    c.addExposedHeader("Set-Cookie");
                     return c;
                 }))
+                .formLogin(AbstractHttpConfigurer::disable)
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .sessionManagement(m -> m.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()  // Preflight 통과
-                        .requestMatchers(
-                                "/", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**",
-                                "/swagger-resources/**", "/webjars/**"
-                        ).permitAll()
-                        .requestMatchers("/auth/**", "/oauth2/**", "/login/**").permitAll() // OAuth 경로 전부 허용
-                        .requestMatchers(HttpMethod.GET, "/members/check-nickname").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/members/check-nickname").permitAll()
-                        .requestMatchers("/healthz").permitAll()
-                        .requestMatchers("/ws/**").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**",
+                                "/swagger-resources/**", "/webjars/**").permitAll()
+                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
+                        .requestMatchers("/ws/**").permitAll()  // SockJS 핸드셰이크(/ws, /ws/info 등)
                         .requestMatchers("/chat/**").authenticated()
                         .anyRequest().authenticated()
                 )
-
-                .exceptionHandling(ex -> ex
-                        .authenticationEntryPoint((req, res, e) -> {
-                            res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                            res.setContentType("application/json;charset=UTF-8");
-                            res.getWriter().write(
-                                    "{\"isSuccess\":false,\"code\":\"AUTH401\",\"message\":\"Unauthorized\"}"
-                            );
-                        })
-                        .accessDeniedHandler((req, res, e) -> {
-                            res.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                            res.setContentType("application/json;charset=UTF-8");
-                            res.getWriter().write(
-                                    "{\"isSuccess\":false,\"code\":\"AUTH403\",\"message\":\"Forbidden\"}"
-                            );
-                        })
+                .oauth2Login(oauth2 -> oauth2
+                        .successHandler(oAuth2LoginSuccessHandler)
+                        .failureHandler(oAuth2LoginFailureHandler)
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 

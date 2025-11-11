@@ -36,17 +36,8 @@ public class OauthService {
     @Value("${spring.security.oauth2.client.registration.google.client-secret}")
     private String GOOGLE_CLIENT_SECRET;
 
-    // 현재 활성화된 프로필 (local, prod 등)을 주입받습니다.
-    @Value("${spring.profiles.active}")
-    private String activeProfile;
-
-    // yml로부터 local용 redirect-uri를 주입받습니다.
-    @Value("${spring.security.oauth2.client.registration.google.redirect-uri.local}")
-    private String LOCAL_REDIRECT_URI;
-
-    // yml로부터 prod용 redirect-uri를 주입받습니다.
-    @Value("${spring.security.oauth2.client.registration.google.redirect-uri.prod}")
-    private String PROD_REDIRECT_URI;
+    @Value("${spring.security.oauth2.client.registration.google.redirect-uri}")
+    private String GOOGLE_REDIRECT_URI;
 
 
     @Transactional
@@ -112,13 +103,9 @@ public class OauthService {
     private Map<String, Object> getGoogleAccessToken(String code) {
         String tokenUri = "https://oauth2.googleapis.com/token";
 
-        // 3. 현재 프로필에 맞는 redirect-uri를 동적으로 선택합니다.
-        String redirectUri = getRedirectUri();
-
         log.info("--- 구글에 액세스 토큰 요청 ---");
-        log.info("Active Profile: {}", activeProfile); // 현재 프로필 로그
         log.info("client_id: {}", GOOGLE_CLIENT_ID);
-        log.info("redirect_uri: {}", redirectUri); // 선택된 redirect-uri 로그
+        log.info("redirect_uri: {}", GOOGLE_REDIRECT_URI);
 
         try {
             return webClient.post()
@@ -126,8 +113,7 @@ public class OauthService {
                             .queryParam("code", code)
                             .queryParam("client_id", GOOGLE_CLIENT_ID)
                             .queryParam("client_secret", GOOGLE_CLIENT_SECRET)
-                            // 4. 동적으로 선택된 URI를 사용합니다.
-                            .queryParam("redirect_uri", redirectUri)
+                            .queryParam("redirect_uri", GOOGLE_REDIRECT_URI)
                             .queryParam("grant_type", "authorization_code")
                             .build())
                     .retrieve()
@@ -136,6 +122,8 @@ public class OauthService {
         } catch (WebClientResponseException e) {
             String responseBody = e.getResponseBodyAsString();
             log.error("!!! 구글 서버 에러 응답: {}", responseBody);
+
+            // 에러 메시지에 구글의 응답을 포함시켜서 다시 던집니다.
             throw new IllegalStateException("Google API 요청 실패. 응답 Body: " + responseBody, e);
         }
     }
@@ -150,20 +138,4 @@ public class OauthService {
                 .bodyToMono(Map.class)
                 .block();
     }
-
-    // --- ⬇️ 3. 이 메서드가 새로 추가되었습니다 ---
-
-    /**
-     * 현재 활성화된 프로필(activeProfile)에 따라 적절한 redirect-uri를 반환합니다.
-     */
-    private String getRedirectUri() {
-        // 님의 application.yml 에 'local'로 되어있으므로 'local'을 기준으로 합니다.
-        if ("local".equals(activeProfile)) {
-            return LOCAL_REDIRECT_URI;
-        }
-
-        // 'local'이 아니면 (prod 등) PROD_REDIRECT_URI를 반환합니다.
-        return PROD_REDIRECT_URI;
-    }
 }
-

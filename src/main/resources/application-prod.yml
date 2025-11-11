@@ -40,10 +40,7 @@ spring:
             scope:
               - email
               - profile
-              # ⬇️ (O) 이 위치가 맞습니다! (scope와 같은 레벨)
-              redirect-uri:
-                local: http://localhost:3000/auth/callback
-                prod: https://mobi.ai.kr/auth/callback
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
 
 
   ai:
@@ -89,8 +86,9 @@ jwt:
 
 
 urls:
-  frontend: "https://mobi.ai.kr"
-  backend:  "https://api.mobi.ai.kr"
+  frontend: ${URLS_FRONTEND}
+  backend: "https://mobi-env.eba-syirxtxr.ap-northeast-2.elasticbeanstalk.com/"
+
 
 api:
   krx:
