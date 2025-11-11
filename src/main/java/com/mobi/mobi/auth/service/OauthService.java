@@ -11,8 +11,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
@@ -26,6 +28,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class OauthService {
+
     private final MemberRepository memberRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final WebClient webClient;
@@ -36,17 +39,23 @@ public class OauthService {
     @Value("${spring.security.oauth2.client.registration.google.client-secret}")
     private String GOOGLE_CLIENT_SECRET;
 
-    @Value("${spring.security.oauth2.client.registration.google.redirect-uri}")
-    private String GOOGLE_REDIRECT_URI;
-
+    // 프론트가 redirectUri를 안 보내면 이 기본값을 사용
+    @Value("${google.redirect.uri:https://mobi.ai.kr/auth/callback}")
+    private String GOOGLE_REDIRECT_URI_DEFAULT;
 
     @Transactional
-    public GoogleLoginResponseDTO loginWithGoogle(String code) {
-
+    public GoogleLoginResponseDTO loginWithGoogle(String code, String redirectUri, String codeVerifier) {
         String decodedCode = URLDecoder.decode(code, StandardCharsets.UTF_8);
+        String finalRedirect = (redirectUri == null || redirectUri.isBlank())
+                ? GOOGLE_REDIRECT_URI_DEFAULT
+                : redirectUri;
 
-        Map<String, Object> tokenResponse = getGoogleAccessToken(decodedCode);
+        Map<String, Object> tokenResponse = getGoogleAccessToken(decodedCode, finalRedirect, codeVerifier);
         String googleAccessToken = (String) tokenResponse.get("access_token");
+        if (googleAccessToken == null) {
+            throw new IllegalStateException("Google access_token 누락. 응답: " + tokenResponse);
+        }
+
         Map<String, Object> userInfo = getGoogleUserInfo(googleAccessToken);
 
         String email = (String) userInfo.get("email");
@@ -55,24 +64,21 @@ public class OauthService {
 
         Optional<Member> memberOptional = memberRepository.findByEmail(email);
 
-        Member member = memberOptional.map(existingMember -> {
-            return existingMember.update(name, profileImgUrl);
-        }).orElseGet(() -> {
-            Member newMember = Member.builder()
-                    .email(email)
-                    .username(name)
-                    .profileImgUrl(profileImgUrl)
-                    .loginType(LoginType.GOOGLE)
-                    .build();
-            newMember.setNickname(name);
-            newMember.setIsPrivacyAgreed(false);
-            return memberRepository.save(newMember);
-        });
+        Member member = memberOptional.map(existingMember -> existingMember.update(name, profileImgUrl))
+                .orElseGet(() -> {
+                    Member newMember = Member.builder()
+                            .email(email)
+                            .username(name)
+                            .profileImgUrl(profileImgUrl)
+                            .loginType(LoginType.GOOGLE)
+                            .build();
+                    newMember.setNickname(name);
+                    newMember.setIsPrivacyAgreed(false);
+                    return memberRepository.save(newMember);
+                });
 
-        // isSignedUp이 false이면, 추가 정보 입력이 필요한 신규 회원으로 간주
         boolean isNewMember = !member.isSignedUp();
 
-        // 기존 사용자가 재로그인한 경우, 이름과 프로필 사진을 최신 정보로 업데이트
         if (!isNewMember) {
             member.update(name, profileImgUrl);
         }
@@ -89,45 +95,38 @@ public class OauthService {
                 .build();
     }
 
-    @Transactional
-    public void logout(Long memberId) {
-        // 1. memberId를 기반으로 사용자를 찾습니다.
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.MEMBER_NOT_FOUND));
-
-        // 2. 해당 사용자의 리프레시 토큰을 DB에서 삭제(null로 업데이트)합니다.
-        member.clearRefreshToken();
-    }
-
-
-    private Map<String, Object> getGoogleAccessToken(String code) {
+    private Map<String, Object> getGoogleAccessToken(String code, String redirectUri, String codeVerifier) {
         String tokenUri = "https://oauth2.googleapis.com/token";
-
         log.info("--- 구글에 액세스 토큰 요청 ---");
         log.info("client_id: {}", GOOGLE_CLIENT_ID);
-        log.info("redirect_uri: {}", GOOGLE_REDIRECT_URI);
+        log.info("redirect_uri(final): {}", redirectUri);
 
         try {
+            BodyInserters.FormInserter<String> form = BodyInserters
+                    .fromFormData("code", code)
+                    .with("client_id", GOOGLE_CLIENT_ID)
+                    .with("client_secret", GOOGLE_CLIENT_SECRET)
+                    .with("redirect_uri", redirectUri)
+                    .with("grant_type", "authorization_code");
+
+            if (codeVerifier != null && !codeVerifier.isBlank()) {
+                form = form.with("code_verifier", codeVerifier);
+            }
+
             return webClient.post()
-                    .uri(tokenUri, uriBuilder -> uriBuilder
-                            .queryParam("code", code)
-                            .queryParam("client_id", GOOGLE_CLIENT_ID)
-                            .queryParam("client_secret", GOOGLE_CLIENT_SECRET)
-                            .queryParam("redirect_uri", GOOGLE_REDIRECT_URI)
-                            .queryParam("grant_type", "authorization_code")
-                            .build())
+                    .uri(tokenUri)
+                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .body(form)
                     .retrieve()
                     .bodyToMono(Map.class)
                     .block();
+
         } catch (WebClientResponseException e) {
             String responseBody = e.getResponseBodyAsString();
-            log.error("!!! 구글 서버 에러 응답: {}", responseBody);
-
-            // 에러 메시지에 구글의 응답을 포함시켜서 다시 던집니다.
+            log.error("!!! 구글 서버 에러 응답: status={}, body={}", e.getRawStatusCode(), responseBody);
             throw new IllegalStateException("Google API 요청 실패. 응답 Body: " + responseBody, e);
         }
     }
-
 
     private Map<String, Object> getGoogleUserInfo(String accessToken) {
         String userInfoUri = "https://www.googleapis.com/oauth2/v2/userinfo";
@@ -137,5 +136,12 @@ public class OauthService {
                 .retrieve()
                 .bodyToMono(Map.class)
                 .block();
+    }
+
+    @Transactional
+    public void logout(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.MEMBER_NOT_FOUND));
+        member.clearRefreshToken();
     }
 }
