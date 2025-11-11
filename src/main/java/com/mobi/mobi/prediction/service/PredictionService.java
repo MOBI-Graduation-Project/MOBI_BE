@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -19,7 +20,6 @@ import java.util.stream.Stream;
 public class PredictionService {
 
     private final MarketPredictionRepository predictionRepository;
-
 
     public List<PredictionResponseDTO> getMarketPredictions() {
         return Stream.of("KOSPI", "KOSDAQ")
@@ -34,27 +34,32 @@ public class PredictionService {
                 .orElseGet(() -> PredictionResponseDTO.defaultOf(marketName));
     }
 
+
     @Transactional
     public void updateMarketPrediction(PredictionRequestDTO requestDTO) {
 
         Optional<MarketPrediction> optionalPrediction =
                 predictionRepository.findByMarketName(requestDTO.getMarketName());
 
+        LocalDateTime now = LocalDateTime.now();
+
         if (optionalPrediction.isPresent()) {
-            // 이미 있으면 업데이트
+
             MarketPrediction existingPrediction = optionalPrediction.get();
             existingPrediction.updatePrediction(
-                    requestDTO.getPredictionResult(),
-                    requestDTO.getPredictionDate(),
-                    requestDTO.getModelAccuracy()
+                    requestDTO.getPredictionResult(),   // "상승"/"하락"
+                    requestDTO.getPredictionDate(),     // 예측 날짜
+                    requestDTO.getModelAccuracy(),      // 모델 정확도
+                    now                                 // generated_at 갱신
             );
         } else {
-            // 없으면 새로 생성
+
             MarketPrediction newPrediction = new MarketPrediction(
                     requestDTO.getMarketName(),
                     requestDTO.getPredictionResult(),
                     requestDTO.getPredictionDate(),
-                    requestDTO.getModelAccuracy()
+                    requestDTO.getModelAccuracy(),
+                    now
             );
             predictionRepository.save(newPrediction);
         }
