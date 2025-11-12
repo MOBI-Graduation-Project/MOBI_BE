@@ -39,18 +39,21 @@ public class OauthService {
     @Value("${spring.security.oauth2.client.registration.google.client-secret}")
     private String GOOGLE_CLIENT_SECRET;
 
-    // 프론트가 redirectUri를 안 보내면 이 기본값을 사용
-    @Value("${google.redirect.uri:https://mobi.ai.kr/auth/callback}")
+    // 프론트가 redirectUri를 안 보내면 이 기본값을 사용->로직변경,프론트url강제
+    @Value("${google.redirect.uri:}")   // 비우기
     private String GOOGLE_REDIRECT_URI_DEFAULT;
 
     @Transactional
     public GoogleLoginResponseDTO loginWithGoogle(String code, String redirectUri, String codeVerifier) {
-        String decodedCode = URLDecoder.decode(code, StandardCharsets.UTF_8);
+        //String decodedCode = URLDecoder.decode(code, StandardCharsets.UTF_8);
         String finalRedirect = (redirectUri == null || redirectUri.isBlank())
-                ? GOOGLE_REDIRECT_URI_DEFAULT
+                ? null
                 : redirectUri;
+        if (finalRedirect == null) {
+            throw new IllegalArgumentException("redirectUri is required for front-callback flow");
+        }
 
-        Map<String, Object> tokenResponse = getGoogleAccessToken(decodedCode, finalRedirect, codeVerifier);
+        Map<String, Object> tokenResponse = getGoogleAccessToken(code, finalRedirect, codeVerifier);
         String googleAccessToken = (String) tokenResponse.get("access_token");
         if (googleAccessToken == null) {
             throw new IllegalStateException("Google access_token 누락. 응답: " + tokenResponse);
