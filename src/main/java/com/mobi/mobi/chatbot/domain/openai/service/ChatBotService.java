@@ -5,6 +5,7 @@ import com.mobi.mobi.chatbot.entity.ChatBotEntity;
 import com.mobi.mobi.chatbot.repository.ChatBotRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,12 +22,16 @@ public class ChatBotService {
     @Transactional(readOnly = true)
     public List<ChatBotResponseDto> readAllChats(String userId) {
 
+        List<ChatBotEntity> chatEntities = chatRepository.findTop10ByUserIdOrderByCreatedAtDesc(userId);
 
-        List<ChatBotEntity> chatEntities = chatRepository.findByUserIdOrderByCreatedAtAsc(userId);
 
-
-        return chatEntities.stream()
+        List<ChatBotResponseDto> dtos = chatEntities.stream()
                 .map(ChatBotResponseDto::new)
                 .collect(Collectors.toList());
+
+
+        Collections.reverse(dtos);
+
+        return dtos;
     }
 }
