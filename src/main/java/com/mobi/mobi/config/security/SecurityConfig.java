@@ -71,7 +71,7 @@ public class SecurityConfig {
                         .requestMatchers("/ws/**").permitAll()
 
                         //챗봇 로그인 토큰 있는 사람만 사용가능하도록
-                        .requestMatchers("/chatbot", "/chatbot/**").authenticated()
+                        .requestMatchers("/chatbot", "/chatbot/**").permitAll()
 
                         // 보호 경로
                         .requestMatchers("/chat/**").authenticated()

@@ -41,17 +41,9 @@ public class ChatBotController {
             Authentication authentication,
             @RequestBody ChatBotRequestDto request
     ) {
-        long memberId;
-        if (user != null) {
-            // 정상 로그인된 사용자
-            memberId = Long.parseLong(user.getUsername());
-        } else if (request.getUserId() != null) {
-            // 로그인은 안 했지만, 프론트에서 userId를 같이 보내주는 경우
-            memberId = Long.parseLong(request.getUserId());
-        } else {
-            // 완전 익명 사용자 – 임시 아이디 부여 (예: 0)
-            memberId = 0L;
-        }
+        Long memberId = (user != null)
+                ? Long.parseLong(user.getUsername())
+                : 0L;
 
         return openAIService.generateStream(memberId, request.getContent(), authentication);
     }
@@ -93,17 +85,11 @@ public class ChatBotController {
                     )
             )
     })
-    public List<ChatBotResponseDto> getChatHistory(@AuthenticationPrincipal User user,
-                                                   @RequestParam(required = false) String userId) {
-        String idStr;
+    public List<ChatBotResponseDto> getChatHistory(@AuthenticationPrincipal User user) {
 
-        if (user != null) {
-            idStr = user.getUsername();
-        } else if (userId != null) {
-            idStr = userId;
-        } else {
-            idStr = "0";
-        }
+        String userId = (user != null)
+                ? user.getUsername()
+                : "0";
 
-        return chatService.readAllChats(idStr);
+        return chatService.readAllChats(userId);
 }}
