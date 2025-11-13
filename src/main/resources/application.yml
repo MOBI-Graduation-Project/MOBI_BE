@@ -6,7 +6,7 @@ cloud:
     region:
       static: ap-northeast-2
 server:
-  forward-headers-strategy: native
+  forward-headers-strategy: framework
   use-forward-headers: true
   tomcat:
     protocol-header: x-forwarded-proto

@@ -5,34 +5,32 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
-import io.swagger.v3.oas.models.servers.Server;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
 
 @Configuration
 public class SwaggerConfig implements WebMvcConfigurer {
 
     @Value("${urls.frontend}")
-    private String frontendUrl;   // 예: https://mobi.ai.kr
-
-    @Value("${urls.backend}")
-    private String backendUrl;    // 예: https://api.mobi.ai.kr
+    private String frontendUrl; // 이 변수는 이제 여기서는 사용되지 않지만, 다른 곳에서 쓸 수 있으니 둬도 됩니다.
 
     @Bean
     public OpenAPI openAPI() {
         final String jwtSchemeName = "bearerAuth";
 
+        io.swagger.v3.oas.models.servers.Server apiServer =
+                new io.swagger.v3.oas.models.servers.Server().url("https://api.mobi.ai.kr");
+
         return new OpenAPI()
-                .addServersItem(new Server()
-                        .url(backendUrl) // HTTPS로 고정
-                        .description("Mobi API Server (HTTPS)"))
+                .servers(java.util.List.of(apiServer))
                 .info(new Info()
                         .title("Mobi API Docs")
                         .version("v1")
-                        .description("모비 API 명세서입니다."))
+                        .description("스웨거 문서 설명 적는 부분")
+                )
                 .addSecurityItem(new SecurityRequirement().addList(jwtSchemeName))
                 .components(new Components()
                         .addSecuritySchemes(jwtSchemeName,
@@ -43,20 +41,5 @@ public class SwaggerConfig implements WebMvcConfigurer {
                                         .bearerFormat("JWT")));
     }
 
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**")
-                .allowedOrigins(
-                        frontendUrl,
-                        "https://mobi.ai.kr",
-                        "https://www.mobi.ai.kr",
-                        "https://api.mobi.ai.kr",
-                        "http://localhost:3000",
-                        "http://127.0.0.1:3000"
-                )
-                .allowedMethods("*")
-                .allowedHeaders("*")
-                .allowCredentials(true)
-                .maxAge(3600); // 프리플라이트 캐시(초)
-    }
+
 }
