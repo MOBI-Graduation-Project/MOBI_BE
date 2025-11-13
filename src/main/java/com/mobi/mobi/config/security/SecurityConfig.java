@@ -39,6 +39,7 @@ public class SecurityConfig {
                             "http://127.0.0.1:3000",
                             "http://localhost:5173",
                             "http://127.0.0.1:5173"
+
                     ));
                     c.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
                     c.setAllowedHeaders(List.of("*"));
@@ -69,6 +70,9 @@ public class SecurityConfig {
                         // 웹소켓 핸드셰이크
                         .requestMatchers("/ws/**").permitAll()
 
+                        //챗봇 로그인 토큰 있는 사람만 사용가능하도록
+                        .requestMatchers("/chatbot", "/chatbot/**").authenticated()
+
                         // 보호 경로
                         .requestMatchers("/chat/**").authenticated()
                         .anyRequest().authenticated()
@@ -92,6 +96,6 @@ public class SecurityConfig {
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+        }
     }
-}
 

@@ -15,7 +15,7 @@ import com.mobi.mobi.member.repository.MemberRepository; // ✅ MemberRepository
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/saju") // API 공통 주소
+@RequestMapping("/saju") // API 공통 주소
 @RequiredArgsConstructor
 @SecurityRequirement(name = "bearerAuth") // Swagger 인증 설정
 public class SajuController {
