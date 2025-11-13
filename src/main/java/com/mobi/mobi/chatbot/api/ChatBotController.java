@@ -41,8 +41,10 @@ public class ChatBotController {
             Authentication authentication,
             @RequestBody ChatBotRequestDto request
     ) {
-        Long memberId = Long.parseLong(user.getUsername());
-        // 요청 DTO에서 content만 뽑아서 OpenAI 서비스로 넘김
+        Long memberId = (user != null)
+                ? Long.parseLong(user.getUsername())
+                : 0L;
+
         return openAIService.generateStream(memberId, request.getContent(), authentication);
     }
 
@@ -84,7 +86,10 @@ public class ChatBotController {
             )
     })
     public List<ChatBotResponseDto> getChatHistory(@AuthenticationPrincipal User user) {
-        Long memberId = Long.parseLong(user.getUsername());
-        return chatService.readAllChats(String.valueOf(memberId));
-    }
-}
+
+        String userId = (user != null)
+                ? user.getUsername()
+                : "0";
+
+        return chatService.readAllChats(userId);
+}}

@@ -14,7 +14,7 @@ import java.util.List;
 @Tag(name = "Market Prediction API", description = "시장(코스피/코스닥) 예측 API")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/prediction")
+@RequestMapping("/prediction")
 public class PredictionController {
 
     private final PredictionService predictionService;

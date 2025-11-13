@@ -101,6 +101,9 @@ public class SecurityConfig {
                         // 웹소켓 경로 허용
                         .requestMatchers("/ws/**").permitAll()
 
+                        //챗본 그냥 누구나 허용
+                        .requestMatchers("/chatbot", "/chatbot/**").permitAll()
+
                         // 채팅 경로는 인증 필요
                         .requestMatchers("/chat/**").authenticated()
 
@@ -116,6 +119,3 @@ public class SecurityConfig {
         return http.build();
     }
 }
-
-
-
