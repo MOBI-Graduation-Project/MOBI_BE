@@ -70,7 +70,7 @@ public class SecurityConfig {
                         // 웹소켓 핸드셰이크
                         .requestMatchers("/ws/**").permitAll()
 
-                        //챗봇 로그인 토큰 있는 사람만 사용가능하도록
+                        //로그인 여부와 상관없이 챗봇 사용 가능
                         .requestMatchers("/chatbot", "/chatbot/**").permitAll()
 
                         // 보호 경로
