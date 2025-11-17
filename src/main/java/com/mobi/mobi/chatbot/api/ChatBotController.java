@@ -22,7 +22,7 @@ import reactor.core.publisher.Flux;
 import java.util.List;
 
 @Controller
-@Tag(name = "chat-bot-controller", description = "챗봇 관련 API")
+@Tag(name = "chatbot-controller", description = "챗봇 관련 API")
 public class ChatBotController {
 
     private final ChatBotService chatService;
