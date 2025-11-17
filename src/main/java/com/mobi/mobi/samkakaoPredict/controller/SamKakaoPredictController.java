@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/prdiction")
+@RequestMapping("/prediction")
 @RequiredArgsConstructor
 @Tag(
         name = "개별 주식 예측",

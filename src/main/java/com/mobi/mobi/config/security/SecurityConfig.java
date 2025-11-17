@@ -101,8 +101,8 @@ public class SecurityConfig {
                         // 웹소켓 경로 허용
                         .requestMatchers("/ws/**").permitAll()
 
-                        //챗봇 그냥 누구나 허용
-                        .requestMatchers("/chatbot", "/chatbot/**").permitAll()
+                        //챗봇 로그인해야만
+                        .requestMatchers("/chatbot", "/chatbot/**").authenticated()
 
                         .requestMatchers("/samkakaopredict/", "/samkakaopredict/**").permitAll()
                         .requestMatchers("/stockdata/", "/stockdata/**").authenticated()
