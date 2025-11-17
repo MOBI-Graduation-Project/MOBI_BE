@@ -17,8 +17,8 @@ import java.util.List;
 @RequestMapping("/prdiction")
 @RequiredArgsConstructor
 @Tag(
-        name = "주식 예측 API",
-        description = "e과거 3일 + 미래 3일 예측 종가 조회"
+        name = "개별 주식 예측",
+        description = "과거 3일 + 미래 3일 예측 종가 조회"
 )
 public class SamKakaoPredictController {
 
