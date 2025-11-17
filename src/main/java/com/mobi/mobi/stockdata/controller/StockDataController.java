@@ -12,7 +12,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/stockdata") // API 공통 주소 설정
+@RequestMapping("/stockdata") // API 공통 주소 설정
 public class StockDataController {
 
     private final StockDataService stockDataService;
