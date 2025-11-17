@@ -7,21 +7,26 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/samkakaopredict")
+@RequestMapping("/prdiction")
 @RequiredArgsConstructor
+@Tag(
+        name = "주식 예측 API",
+        description = "e과거 3일 + 미래 3일 예측 종가 조회"
+)
 public class SamKakaoPredictController {
 
     private final SamKakaoPredictService samKakaoPredictService;
 
     @Operation(
             summary = "주식 예측 조회",
-            description = "삼성전자(005930), 카카오(035720)의 과거 3일 실제 종가 + 미래 3일 예측 종가를 반환합니다.",
+            description = "과거 3일 실제 종가 + 미래 3일 예측 종가를 반환합니다.",
             responses = {
                     @ApiResponse(
                             responseCode = "200",
