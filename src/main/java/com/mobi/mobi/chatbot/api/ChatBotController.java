@@ -14,10 +14,14 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder; // <-- 11/18 추가
+import org.springframework.security.core.context.SecurityContext; // <-- 11/18 추가
 import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono; // <-- 11/18 추가
+import org.springframework.http.MediaType;
 
 import java.util.List;
 
@@ -33,20 +37,35 @@ public class ChatBotController {
         this.openAIService = openAIService;
     }
 
+
     @ResponseBody
-    @PostMapping("/chatbot")
+    @PostMapping(value = "/chatbot", produces = MediaType.TEXT_PLAIN_VALUE)
     @Operation(summary = "챗봇에게 메시지 전송 (스트리밍 응답)")
     public Flux<String> streamChat(
-            @AuthenticationPrincipal User user,
-            Authentication authentication,
-            @RequestBody ChatBotRequestDto request
+            @RequestBody ChatBotRequestDto request // <-- 파라미터에서 @AuthenticationPrincipal, Authentication 제거
     ) {
-        Long memberId = (user != null)
-                ? Long.parseLong(user.getUsername())
-                : 0L;
+        // 1. WebFlux(Reactive) 인증 컨텍스트에서 Authentication 객체를 비동기(Mono)로
+        Mono<Authentication> authMono = ReactiveSecurityContextHolder.getContext()
+                .map(SecurityContext::getAuthentication);
 
-        return openAIService.generateStream(memberId, request.getContent(), authentication);
+        // 2. 인증 정보를 성공적으로 가져왔을 때의 로직 (flatMapMany 사용)
+        return authMono.flatMapMany(authentication -> {
+                    // (인증된 사용자)
+                    // 가져온 authentication 객체에서 User(principal)와 memberId를 추출
+                    User user = (User) authentication.getPrincipal();
+                    Long memberId = Long.parseLong(user.getUsername());
+
+                    // OpenAIService에 memberId와 authentication 객체를 전달
+                    return openAIService.generateStream(memberId, request.getContent(), authentication);
+                })
+                // 3. 인증 정보를 가져오지 못했을 때(비로그인)의 로직 (switchIfEmpty 사용)
+                .switchIfEmpty(Flux.defer(() -> {
+                    // 기존 로직처럼 memberId = 0L, authentication = null 로 처리
+                    Long memberId = 0L;
+                    return openAIService.generateStream(memberId, request.getContent(), null);
+                }));
     }
+
 
     @ResponseBody
     @GetMapping("/chatbot/history")
@@ -92,4 +111,5 @@ public class ChatBotController {
                 : "0";
 
         return chatService.readAllChats(userId);
-}}
+    }
+}
