@@ -1,47 +1,37 @@
-// SajuController.java
 package com.mobi.mobi.saju.controller;
 
 import com.mobi.mobi.saju.dto.SajuRequest;
 import com.mobi.mobi.saju.dto.SajuResponse;
 import com.mobi.mobi.saju.service.SajuService;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.User;
-import com.mobi.mobi.member.entity.Member; // ✅ Member 엔티티 import
-import com.mobi.mobi.member.repository.MemberRepository; // ✅ MemberRepository import
-
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/saju") // API 공통 주소
+@RequestMapping("/saju")
 @RequiredArgsConstructor
-@SecurityRequirement(name = "bearerAuth") // Swagger 인증 설정
+@Tag(name = "Saju", description = "사주/주식 궁합 API")
 public class SajuController {
 
     private final SajuService sajuService;
-    private final MemberRepository memberRepository;
+    // private final MemberRepository memberRepository; // [삭제] DB 조회 안 함
 
     @PostMapping("/compatibility")
+    @Operation(summary = "주식 사주 궁합", description = "닉네임, 생년월일, 종목명을 입력받아 결과를 반환합니다.")
+    // @SecurityRequirement(name = "bearerAuth") // [삭제] 자물쇠 제거 (인증 불필요)
     public ResponseEntity<SajuResponse> getSajuCompatibility(
-            @AuthenticationPrincipal User user,
+            // @AuthenticationPrincipal User user, // [삭제] 토큰 안 받음
             @RequestBody SajuRequest request) {
 
-        // 1. @AuthenticationPrincipal에서 사용자의 고유 ID (memberId)를 가져옵니다.
-        Long memberId = Long.parseLong(user.getUsername());
 
-        // 2. memberId를 사용해 데이터베이스에서 Member 정보를 조회합니다.
-        //    orElseThrow를 사용해 해당 ID의 멤버가 없을 경우 예외를 발생시킵니다.
-        Member findMember = memberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 ID의 사용자를 찾을 수 없습니다: " + memberId));
+        String nickname = request.getNickname();
 
-        // 3. 조회한 Member 객체에서 실제 사용자 이름(username)을 가져옵니다.
-        String userName = findMember.getUsername();
+        // 2. 서비스 호출 (서비스의 첫 번째 파라미터로 nickname 전달)
 
-        // 4. 가져온 실제 사용자 이름을 서비스에 전달합니다.
         String result = sajuService.getSajuCompatibility(
-                userName,
+                nickname,
                 request.getBirthDate(),
                 request.getStockName()
         );
