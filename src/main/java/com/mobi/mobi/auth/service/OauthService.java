@@ -67,12 +67,12 @@ public class OauthService {
 
         Optional<Member> memberOptional = memberRepository.findByEmail(email);
 
-        Member member = memberOptional.map(existingMember -> existingMember.update(name, profileImgUrl))
+        Member member = memberOptional.map(existingMember -> existingMember.update(name))
                 .orElseGet(() -> {
                     Member newMember = Member.builder()
                             .email(email)
                             .username(name)
-                            .profileImgUrl(profileImgUrl)
+                            .profileImgUrl(profileImgUrl) // 신규 가입 시에는 이미지 URL 저장
                             .loginType(LoginType.GOOGLE)
                             .build();
                     newMember.setNickname(name);
@@ -83,7 +83,7 @@ public class OauthService {
         boolean isNewMember = !member.isSignedUp();
 
         if (!isNewMember) {
-            member.update(name, profileImgUrl);
+            member.update(name); // 기존 회원 로그인 시에도 이름만 업데이트
         }
 
         String accessToken = jwtTokenProvider.createAccessToken(member.getId().toString());

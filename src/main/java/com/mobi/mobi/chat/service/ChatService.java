@@ -5,7 +5,7 @@ import com.mobi.mobi.apiPayload.status.ErrorStatus;
 import com.mobi.mobi.chat.dto.ChatMessageDTO;
 import com.mobi.mobi.chat.entity.ChatMessage;
 import com.mobi.mobi.chat.entity.ChatRoom;
-import com.mobi.mobi.chat.entity.ChatRoomListDTO;
+import com.mobi.mobi.chat.dto.ChatRoomListDTO;
 import com.mobi.mobi.chat.entity.ChatRoomMember;
 import com.mobi.mobi.chat.entity.enums.ChatType;
 import com.mobi.mobi.chat.repository.ChatMessageRepository;
@@ -17,7 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.Instant; // LocalDateTime -> Instant
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -109,7 +109,9 @@ public class ChatService {
             // 마지막메시지
             Optional<ChatMessage> lastMessageOpt = chatMessageRepository.findFirstByChatRoomOrderByCreatedAtDesc(chatRoom);
             String lastMessageContent = lastMessageOpt.map(ChatMessage::getContent).orElse("아직 대화가 없습니다.");
-            LocalDateTime lastMessageSentAt = lastMessageOpt.map(ChatMessage::getCreatedAt).orElse(chatRoom.getCreatedAt());
+
+            // Instant 타입으로 변경 (에러 발생 지점)
+            Instant lastMessageSentAt = lastMessageOpt.map(ChatMessage::getCreatedAt).orElse(chatRoom.getCreatedAt());
 
             // 4. 안 읽은 메시지 수를 계산한다.
             long unreadCount = chatMessageRepository.countByChatRoomAndSenderNotAndIsReadIsFalse(chatRoom, me);
@@ -169,5 +171,3 @@ public class ChatService {
         chatRoomMemberRepository.save(ChatRoomMember.builder().chatRoom(room).member(member).build());
     }
 }
-
-
