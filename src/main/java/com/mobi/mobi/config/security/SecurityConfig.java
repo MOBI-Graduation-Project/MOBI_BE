@@ -108,7 +108,7 @@ public class SecurityConfig {
                         .requestMatchers("/samkakaopredict/", "/samkakaopredict/**").permitAll()
                         .requestMatchers("/stockdata/", "/stockdata/**").authenticated()
                         .requestMatchers("/prediction", "/prediction/**").permitAll()
-                        .requestMatchers("/saju", "/saju/**").authenticated()
+                        .requestMatchers("/saju", "/saju/**").permitAll()
 
                         .requestMatchers("/mydata", "/mydata/**").authenticated()
 

@@ -1,4 +1,3 @@
-// SajuService.java
 package com.mobi.mobi.saju.service;
 
 import com.mobi.mobi.stockdata.entity.StockData;
@@ -25,7 +24,7 @@ public class SajuService {
     private final OpenAiChatModel openAiChatModel;         // AI 모델을 사용하기 위해 주입
 
     @Transactional(readOnly = true)
-    public String getSajuCompatibility(String userName, LocalDate userBirthDate, String stockName) {
+    public String getSajuCompatibility(String nickname, LocalDate userBirthDate, String stockName) {
 
         // 1. DB에서 종목명으로 주식 정보 조회 (findByNameContaining 사용)
         // 정확한 이름 매칭을 위해 stream().findFirst() 사용
@@ -54,7 +53,7 @@ public class SajuService {
         // 5. 사용자 메시지 (실제 질문)
         String userPrompt = String.format(
                 "저의 이름은 %s이고, 생년월일은 %s입니다. 제가 궁금한 주식 종목은 '%s'이고, 이 종목의 상장일은 %s입니다. 저와 이 주식의 사주 궁합을 분석해주세요.",
-                userName, formattedUserBirthDate, stockName, formattedListingDate
+                nickname, formattedUserBirthDate, stockName, formattedListingDate
         );
         UserMessage userMessage = new UserMessage(userPrompt);
 
