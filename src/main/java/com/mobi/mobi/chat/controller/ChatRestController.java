@@ -3,7 +3,7 @@ package com.mobi.mobi.chat.controller;
 import com.mobi.mobi.apiPayload.ApiResponse;
 import com.mobi.mobi.apiPayload.status.SuccessStatus;
 import com.mobi.mobi.chat.dto.ChatMessageDTO;
-import com.mobi.mobi.chat.entity.ChatRoomListDTO;
+import com.mobi.mobi.chat.dto.ChatRoomListDTO;
 import com.mobi.mobi.chat.service.ChatService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;

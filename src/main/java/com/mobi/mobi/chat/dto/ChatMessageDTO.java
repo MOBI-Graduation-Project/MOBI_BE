@@ -5,6 +5,7 @@ import com.mobi.mobi.chat.entity.ChatMessage;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Getter
@@ -16,7 +17,7 @@ public class ChatMessageDTO {
     private String senderNickname; // 보낸 사람 닉네임
     private String profileUrl;
     private String content; // 메시지 내용
-    private LocalDateTime sentAt; // 보낸 시간
+    private Instant sentAt; // 보낸 시간
 
     @JsonProperty("isRead")
     private boolean isRead;
@@ -30,7 +31,7 @@ public class ChatMessageDTO {
         dto.setSenderNickname(entity.getSender().getNickname());
         dto.setProfileUrl(entity.getSender().getProfileImgUrl());
         dto.setContent(entity.getContent());
-        dto.setSentAt(entity.getCreatedAt()); // BaseEntity의 createdAt 사용
+        dto.setSentAt(entity.getCreatedAt());
         dto.setRead(entity.isRead());
         return dto;
     }

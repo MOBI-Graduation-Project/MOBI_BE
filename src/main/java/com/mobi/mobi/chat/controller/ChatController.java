@@ -25,7 +25,6 @@ public class ChatController {
     @MessageMapping("/chat/message")
     public void message(@Payload ChatMessageDTO message, SimpMessageHeaderAccessor headerAccessor) {
 
-        // ✨ 해결책: 세션 속성에서 직접 Principal(Authentication) 객체를 가져옵니다.
         Authentication authentication = (Authentication) headerAccessor.getSessionAttributes().get("userPrincipal");
 
         if (authentication == null) {
