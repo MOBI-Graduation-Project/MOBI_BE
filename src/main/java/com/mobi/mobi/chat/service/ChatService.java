@@ -134,7 +134,7 @@ public class ChatService {
                     .roomId(chatRoom.getId())
                     .roomName(roomName)
                     .lastMessage(lastMessageContent)
-                    .lastMessageSentAt(lastMessageSentAt) 
+                    .lastMessageSentAt(lastMessageSentAt)
                     .unreadCount(unreadCount)
                     .otherMemberProfileImage(otherMemberProfileImage)
                     .build();
