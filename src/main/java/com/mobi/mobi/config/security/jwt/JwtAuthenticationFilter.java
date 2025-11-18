@@ -29,7 +29,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/auth/**", "/oauth2/**", "/login/**",
 
             // 기타 permitAll 경로
-            "/members/check-nickname", // SecurityConfig에 있었죠
+            "/members/check-nickname",
             "/healthz",
 
             "/samkakaopredict/", "/samkakaopredict/**",
