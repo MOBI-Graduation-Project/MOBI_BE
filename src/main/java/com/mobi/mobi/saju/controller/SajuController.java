@@ -16,15 +16,13 @@ import org.springframework.web.bind.annotation.*;
 public class SajuController {
 
     private final SajuService sajuService;
-    // private final MemberRepository memberRepository; // [삭제] DB 조회 안 함
 
     @PostMapping("/compatibility")
-    @Operation(summary = "주식 사주 궁합", description = "생년월일, 종목명을 입력받아 결과를 반환합니다.")
-    // @SecurityRequirement(name = "bearerAuth") // [삭제] 자물쇠 제거 (인증 불필요)
+    @Operation(summary = "주식 사주 궁합", description = "로그인 없이 생년월일과 종목명만으로 궁합을 봅니다.")
     public ResponseEntity<SajuResponse> getSajuCompatibility(
-            // @AuthenticationPrincipal User user, // [삭제] 토큰 안 받음
             @RequestBody SajuRequest request) {
 
+        // 인증 정보(User)나 닉네임 없이, 오직 요청 데이터만 서비스로 전달
         String result = sajuService.getSajuCompatibility(
                 request.getBirthDate(),
                 request.getStockName()
