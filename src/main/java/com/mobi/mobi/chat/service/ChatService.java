@@ -110,7 +110,6 @@ public class ChatService {
             Optional<ChatMessage> lastMessageOpt = chatMessageRepository.findFirstByChatRoomOrderByCreatedAtDesc(chatRoom);
             String lastMessageContent = lastMessageOpt.map(ChatMessage::getContent).orElse("아직 대화가 없습니다.");
 
-            // Instant 타입으로 변경 (에러 발생 지점)
             Instant lastMessageSentAt = lastMessageOpt.map(ChatMessage::getCreatedAt).orElse(chatRoom.getCreatedAt());
 
             // 4. 안 읽은 메시지 수를 계산한다.
