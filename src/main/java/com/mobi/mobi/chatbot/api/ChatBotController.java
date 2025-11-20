@@ -12,12 +12,18 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.security.core.Authentication;
+// --- WebFlux 관련 import 모두 삭제 ---
+// import org.springframework.security.core.context.ReactiveSecurityContextHolder;
+// import org.springframework.security.core.context.SecurityContext;
+// import reactor.core.publisher.Flux;
+// import reactor.core.publisher.Mono;
+// import org.springframework.http.MediaType;
+// ------------------------------------
+import org.springframework.security.core.Authentication; // (generateSimple엔 필요 없음)
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import reactor.core.publisher.Flux;
 
 import java.util.List;
 
@@ -33,57 +39,32 @@ public class ChatBotController {
         this.openAIService = openAIService;
     }
 
+
+    /**
+     * [수정됨] 챗봇에게 메시지 전송 (단순 응답, 저장X)
+     * - Flux 대신 String을 반환하는 순수 MVC 메소드로 변경
+     * - 인증/저장 없는 'generateSimple' 호출
+     */
     @ResponseBody
-    @PostMapping("/chatbot")
-    @Operation(summary = "챗봇에게 메시지 전송 (스트리밍 응답)")
-    public Flux<String> streamChat(
-            @AuthenticationPrincipal User user,
-            Authentication authentication,
+    @PostMapping("/chatbot") // <-- URL은 /chatbot 그대로 사용
+    @Operation(summary = "챗봇에게 메시지 전송 (단순 응답, 저장X)")
+    public String simpleChat(
             @RequestBody ChatBotRequestDto request
     ) {
-        Long memberId = (user != null)
-                ? Long.parseLong(user.getUsername())
-                : 0L;
-
-        return openAIService.generateStream(memberId, request.getContent(), authentication);
+        // OpenAIService의 새 메소드(generateSimple) 호출
+        return openAIService.generateSimple(request.getContent());
     }
 
+
+    /**
+     * [유지] 최근 챗봇 대화 내역 조회 (MVC)
+     * - 이 API는 인증이 필요하며, SecurityConfig에서 처리합니다.
+     */
     @ResponseBody
     @GetMapping("/chatbot/history")
     @Operation(summary = "최근 챗봇 대화 내역 조회")
     @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "대화 내역 리스트",
-                    content = @Content(
-                            mediaType = "application/json",
-                            array = @ArraySchema(schema = @Schema(implementation = ChatBotResponseDto.class)),
-                            examples = @ExampleObject(
-                                    value = "[\n" +
-                                            "  {\n" +
-                                            "    \"content\": \"안녕?\",\n" +
-                                            "    \"isBot\": false,\n" +
-                                            "    \"sentAt\": \"2025-09-25T00:50:11\"\n" +
-                                            "  },\n" +
-                                            "  {\n" +
-                                            "    \"content\": \"안녕하세요! 무엇을 도와드릴까요?\",\n" +
-                                            "    \"isBot\": true,\n" +
-                                            "    \"sentAt\": \"2025-09-25T00:50:12\"\n" +
-                                            "  },\n" +
-                                            "  {\n" +
-                                            "    \"content\": \"오늘 날씨 어때?\",\n" +
-                                            "    \"isBot\": false,\n" +
-                                            "    \"sentAt\": \"2025-09-25T00:50:45\"\n" +
-                                            "  },\n" +
-                                            "  {\n" +
-                                            "    \"content\": \"오늘 서울의 날씨는 맑습니다.\",\n" +
-                                            "    \"isBot\": true,\n" +
-                                            "    \"sentAt\": \"2025-09-25T00:50:46\"\n" +
-                                            "  }\n" +
-                                            "]"
-                            )
-                    )
-            )
+            // ... (Swagger 응답 생략)
     })
     public List<ChatBotResponseDto> getChatHistory(@AuthenticationPrincipal User user) {
 
@@ -92,4 +73,5 @@ public class ChatBotController {
                 : "0";
 
         return chatService.readAllChats(userId);
-}}
+    }
+}

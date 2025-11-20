@@ -78,10 +78,10 @@ public class Member extends BaseEntity {
         this.isSignedUp = false;
     }
 
-    // 구글 프로필 정보(이름, 사진)가 변경될 경우 업데이트하는 메서드
-    public Member update(String username, String profileImgUrl) {
+    public Member update(String username) {
+        // 구글에서 이름이 변경된 경우에만 업데이트
         this.username = username;
-        this.profileImgUrl = profileImgUrl;
+        // profileImgUrl 업데이트 로직 제거
         return this;
     }
 

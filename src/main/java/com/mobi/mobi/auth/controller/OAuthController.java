@@ -4,6 +4,7 @@ import com.mobi.mobi.apiPayload.ApiResponse;
 import com.mobi.mobi.apiPayload.status.SuccessStatus;
 import com.mobi.mobi.auth.dto.GoogleLoginRequestDTO;
 import com.mobi.mobi.auth.dto.GoogleLoginResponseDTO;
+import com.mobi.mobi.auth.dto.TokenReissueRequestDTO;
 import com.mobi.mobi.auth.service.OauthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -38,12 +39,23 @@ public class OAuthController {
         return ApiResponse.onSuccess(SuccessStatus._OK, response);
     }
 
+    @PostMapping("/reissue")
+    @Operation(
+            summary = "토큰 갱신 API",
+            description = "Refresh Token을 사용하여 Access Token과 Refresh Token을 모두 재발급합니다. (RTR 방식)"
+    )
+    public ApiResponse<GoogleLoginResponseDTO> reissue(@RequestBody TokenReissueRequestDTO request) {
+        GoogleLoginResponseDTO response = oauthService.reissue(request.getRefreshToken());
+        return ApiResponse.onSuccess(SuccessStatus._OK, response);
+    }
+
     @PostMapping("/logout")
-    @Operation(summary = "로그아웃 API", description = "서버에 저장된 Refresh Token을 삭제하여 로그아웃 처리합니다.")
-    @SecurityRequirement(name = "bearerAuth")
-    public ApiResponse<Object> logout(@AuthenticationPrincipal User user) {
-        Long memberId = Long.parseLong(user.getUsername());
-        oauthService.logout(memberId);
+    @Operation(
+            summary = "로그아웃",
+            description = "Refresh Token을 DB에서 삭제합니다. (Access Token 만료 여부와 관계없이 로그아웃 가능)"
+    )
+    public ApiResponse<Object> logout(@RequestBody TokenReissueRequestDTO request) {
+        oauthService.logout(request.getRefreshToken());
         return ApiResponse.onSuccess(SuccessStatus._OK, null);
     }
 }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mobi.mobi.prediction.entity.MarketPrediction;
 import lombok.Getter;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -16,7 +17,7 @@ public class PredictionResponseDTO {
     private final String predictionResult;
 
     @JsonProperty("lastUpdated")
-    private final LocalDateTime lastUpdated;
+    private final Instant lastUpdated;
 
     @JsonProperty("predictionDate")
     private final LocalDate predictionDate; // 예측 기준일
@@ -34,7 +35,7 @@ public class PredictionResponseDTO {
 
     private PredictionResponseDTO(String marketName,
                                   String predictionResult,
-                                  LocalDateTime lastUpdated,
+                                  Instant lastUpdated,
                                   LocalDate predictionDate,
                                   Double modelAccuracy) {
         this.marketName = marketName;
@@ -58,7 +59,7 @@ public class PredictionResponseDTO {
         return new PredictionResponseDTO(
                 marketName,
                 "상승",
-                LocalDateTime.now(),
+                Instant.now(),
                 LocalDate.now().plusDays(1),
                 defaultAccuracy
         );

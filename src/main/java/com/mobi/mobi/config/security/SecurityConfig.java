@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -72,7 +73,7 @@ public class SecurityConfig {
                             response.setContentType("application/json;charset=UTF-8");
                             response.getWriter().write(
                                     "{\"isSuccess\":false," +
-                                            "\"code\":\"AUTH401\"," +
+                                            "\"code\":\"AUTH401\","  +
                                             "\"message\":\"인증이 필요합니다.\"}"
                             );
                         })
@@ -101,13 +102,13 @@ public class SecurityConfig {
                         // 웹소켓 경로 허용
                         .requestMatchers("/ws/**").permitAll()
 
-                        //챗봇 로그인해야만
-                        .requestMatchers("/chatbot", "/chatbot/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/chatbot").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/chatbot/history").authenticated()
 
                         .requestMatchers("/samkakaopredict/", "/samkakaopredict/**").permitAll()
                         .requestMatchers("/stockdata/", "/stockdata/**").authenticated()
                         .requestMatchers("/prediction", "/prediction/**").permitAll()
-                        .requestMatchers("/saju", "/saju/**").authenticated()
+                        .requestMatchers("/saju", "/saju/**").permitAll()
 
                         .requestMatchers("/mydata", "/mydata/**").authenticated()
 
