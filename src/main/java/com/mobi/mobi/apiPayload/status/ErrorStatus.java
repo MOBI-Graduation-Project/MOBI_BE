@@ -24,6 +24,7 @@ public enum ErrorStatus implements BaseErrorCode {
     OAUTH_INVALID_GRANT(HttpStatus.BAD_REQUEST, "OAUTH4006", "인증 코드가 만료되었거나 이미 사용되었습니다."),
 
 
+
     // === JWT 관련 에러 ===
     JWT_CREATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "JWT5001", "JWT 발급 중 오류가 발생했습니다."),
     JWT_REFRESH_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "JWT4001", "리프레시 토큰이 만료되었습니다."),

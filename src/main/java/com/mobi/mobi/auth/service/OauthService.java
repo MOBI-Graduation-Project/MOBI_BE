@@ -12,8 +12,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -142,9 +144,68 @@ public class OauthService {
     }
 
     @Transactional
-    public void logout(Long memberId) {
+    public GoogleLoginResponseDTO reissue(String refreshToken) {
+        // 1. 토큰 유효성 검사 (만료 여부 등)
+        if (!jwtTokenProvider.validateToken(refreshToken)) {
+            // 유효하지 않거나 만료된 경우
+            throw new GeneralException(ErrorStatus.JWT_REFRESH_TOKEN_EXPIRED);
+        }
+
+        // 2. 토큰에서 유저 정보(Member ID) 추출
+        Authentication authentication = jwtTokenProvider.getAuthentication(refreshToken);
+        Long memberId = Long.parseLong(authentication.getName());
+
+        // 3. DB에서 멤버 조회
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.MEMBER_NOT_FOUND));
+
+        // 4. DB에 저장된 토큰과 요청받은 토큰이 일치하는지 확인 (탈취 방지)
+        String savedRefreshToken = member.getRefreshToken();
+        if (savedRefreshToken == null) {
+            throw new GeneralException(ErrorStatus.JWT_REFRESH_TOKEN_NOT_FOUND);
+        }
+
+        if (!savedRefreshToken.equals(refreshToken)) {
+            // 토큰이 일치하지 않음 (다른 곳에서 로그인했거나 탈취 시도 가능성)
+            log.warn("Refresh Token Mismatch for Member ID: {}", memberId);
+            throw new GeneralException(ErrorStatus.JWT_REFRESH_TOKEN_EXPIRED);
+        }
+
+        // 5. 새로운 토큰 쌍 발급 (RTR: Refresh Token Rotation)
+        String newAccessToken = jwtTokenProvider.createAccessToken(memberId.toString());
+        String newRefreshToken = jwtTokenProvider.createRefreshToken(memberId.toString());
+
+        // 6. DB 업데이트 (새로운 리프레시 토큰 저장)
+        member.setRefreshToken(newRefreshToken);
+
+        // 7. 응답 반환
+        return GoogleLoginResponseDTO.builder()
+                .isNewMember(false) // 갱신이므로 항상 false
+                .accessToken(newAccessToken)
+                .refreshToken(newRefreshToken)
+                .member(member)
+                .build();
+    }
+
+    @Transactional
+    public void logout(String refreshToken) {
+        String resolvedToken = resolveToken(refreshToken);
+
+        Authentication authentication = jwtTokenProvider.getAuthentication(resolvedToken);
+
+
+        Long memberId = Long.parseLong(authentication.getName());
+
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.MEMBER_NOT_FOUND));
+
+        // DB의 리프레시 토큰 삭제
         member.clearRefreshToken();
+    }
+    private String resolveToken(String token) {
+        if (StringUtils.hasText(token) && token.startsWith("Bearer ")) {
+            return token.substring(7);
+        }
+        return token;
     }
 }
