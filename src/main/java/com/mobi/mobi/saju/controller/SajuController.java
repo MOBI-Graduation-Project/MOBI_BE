@@ -18,7 +18,7 @@ public class SajuController {
     private final SajuService sajuService;
 
     @PostMapping("/compatibility")
-    @Operation(summary = "주식 사주 궁합", description = "로그인 없이 생년월일과 종목명만으로 궁합을 봅니다.")
+    @Operation(summary = "주식 사주 궁합", description = "원하는 주식 종목과의 궁합을 봅니다.")
     public ResponseEntity<SajuResponse> getSajuCompatibility(
             @RequestBody SajuRequest request) {
 
