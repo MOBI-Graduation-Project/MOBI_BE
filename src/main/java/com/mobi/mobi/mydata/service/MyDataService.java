@@ -6,7 +6,6 @@ import com.mobi.mobi.external.krx.KrxApiClient;
 import com.mobi.mobi.external.krx.KrxStockInfo;
 import com.mobi.mobi.member.entity.Member;
 import com.mobi.mobi.member.repository.MemberRepository;
-import com.mobi.mobi.mydata.dto.MyDataListResponseDTO;
 import com.mobi.mobi.mydata.dto.MyDataRequestDTO;
 import com.mobi.mobi.mydata.dto.MyDataResponseDTO;
 import com.mobi.mobi.mydata.dto.PieChartDTO;
@@ -18,8 +17,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.RoundingMode;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -60,19 +59,14 @@ public class MyDataService {
         return new MyDataResponseDTO(savedMyData);
     }
 
-    public MyDataListResponseDTO getMyData(Long memberId) {
+    // === [수정됨] 반환 타입을 List<MyDataResponseDTO>로 변경하여 리스트만 반환 ===
+    public List<MyDataResponseDTO> getMyData(Long memberId) {
 
-        // 공통 계산 로직
+        // 공통 계산 로직 수행 (비중 계산 등을 위해 여전히 필요함)
         PortfolioCalcResult calc = loadAndCalculatePortfolio(memberId);
 
-        return new MyDataListResponseDTO(
-                calc.myDataResponseDTOList,
-                calc.pieChartList,                 // 기존 응답 포맷 유지
-                calc.totalValuationAmount,
-                calc.totalPrincipalAmount,
-                calc.totalReturnAmount,
-                calc.totalReturnRate
-        );
+        // 전체 요약 정보나 파이차트는 버리고, 계산된 주식 목록 리스트만 반환
+        return calc.myDataResponseDTOList();
     }
 
     public List<PieChartDTO> getMyDataPieChart(Long memberId) {
@@ -98,6 +92,7 @@ public class MyDataService {
         myDataRepository.delete(myData);
     }
 
+    // 내부 계산 로직 (비중 계산을 위해 총 평가금액 계산이 필요하므로 이 로직은 유지)
     private PortfolioCalcResult loadAndCalculatePortfolio(Long memberId) {
 
         Member member = memberRepository.findById(memberId)
@@ -170,7 +165,7 @@ public class MyDataService {
                 })
                 .collect(Collectors.toList());
 
-        // 4. 전체 합계 계산
+        // 4. 전체 합계 계산 (비중 계산을 위한 분모로 사용됨)
         BigDecimal totalValuationAmount = BigDecimal.ZERO;
         BigDecimal totalPrincipalAmount = BigDecimal.ZERO;
 
@@ -185,21 +180,19 @@ public class MyDataService {
         if (totalValuationAmount.compareTo(BigDecimal.ZERO) > 0) {
             for (MyDataResponseDTO dto : myDataResponseDTOList) {
                 if (dto.getValuationAmount() != null) {
-                    // 1. (평가금액 / 총평가금액) * 100 계산
-                    // 2. setScale(2, RoundingMode.HALF_UP)으로 소수점 2자리 반올림 확정
                     BigDecimal weight = dto.getValuationAmount()
                             .multiply(new BigDecimal("100"))
-                            .divide(totalValuationAmount, 4, RoundingMode.HALF_UP) // 나눗셈은 넉넉하게 4자리까지
-                            .setScale(2, RoundingMode.HALF_UP); // 최종 결과는 2자리로 자름 (예: 21.357 -> 21.36)
+                            .divide(totalValuationAmount, 4, RoundingMode.HALF_UP)
+                            .setScale(2, RoundingMode.HALF_UP);
 
                     dto.setHoldingWeight(weight);
                 } else {
-                    dto.setHoldingWeight(BigDecimal.ZERO.setScale(2)); // 0.00 으로 설정
+                    dto.setHoldingWeight(BigDecimal.ZERO.setScale(2));
                 }
             }
         }
 
-        // 6. 파이차트용으로 종목코드 단위로 합치기
+        // 6. 파이차트용 데이터 생성
         Map<String, BigDecimal> weightByStock = new LinkedHashMap<>();
         Map<String, String> nameByStock = new HashMap<>();
 
