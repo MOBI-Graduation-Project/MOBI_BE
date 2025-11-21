@@ -40,13 +40,16 @@ public class MyDataController {
 
     @GetMapping("")
     @Operation(summary = "보유 주식 목록 조회 API", description = "사용자가 보유한 모든 주식 정보를 조회합니다.")
-    public ApiResponse<MyDataListResponseDTO> showMyData(
+// 1. 반환 제네릭 타입을 List<MyDataResponseDTO>로 변경
+    public ApiResponse<List<MyDataResponseDTO>> showMyData(
             @AuthenticationPrincipal User user) {
         Long memberId = Long.parseLong(user.getUsername());
-        MyDataListResponseDTO responseDTO = myDataService.getMyData(memberId);
-        return ApiResponse.onSuccess(SuccessStatus._OK, responseDTO);
-    }
 
+        // 2. 서비스에서 DTO 껍데기가 아닌 리스트 자체를 받아오도록 호출
+        List<MyDataResponseDTO> responseList = myDataService.getMyData(memberId);
+
+        return ApiResponse.onSuccess(SuccessStatus._OK, responseList);
+    }
     @GetMapping("/piechart")
     @Operation(summary = "보유 주식 파이차트 데이터 조회 API", description = "사용자의 보유 종목을 종목 단위로 합산하여 파이차트용 비중 데이터를 제공합니다.")
     public ApiResponse<List<PieChartDTO>> showMyDataPieChart(
