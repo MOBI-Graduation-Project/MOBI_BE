@@ -185,17 +185,18 @@ public class MyDataService {
         if (totalValuationAmount.compareTo(BigDecimal.ZERO) > 0) {
             for (MyDataResponseDTO dto : myDataResponseDTOList) {
                 if (dto.getValuationAmount() != null) {
+                    // 1. (평가금액 / 총평가금액) * 100 계산
+                    // 2. setScale(2, RoundingMode.HALF_UP)으로 소수점 2자리 반올림 확정
                     BigDecimal weight = dto.getValuationAmount()
-                            .divide(totalValuationAmount, 4, RoundingMode.HALF_UP)
                             .multiply(new BigDecimal("100"))
-                            .setScale(0, RoundingMode.DOWN); // 소수점 없이
+                            .divide(totalValuationAmount, 4, RoundingMode.HALF_UP) // 나눗셈은 넉넉하게 4자리까지
+                            .setScale(2, RoundingMode.HALF_UP); // 최종 결과는 2자리로 자름 (예: 21.357 -> 21.36)
+
                     dto.setHoldingWeight(weight);
                 } else {
-                    dto.setHoldingWeight(BigDecimal.ZERO);
+                    dto.setHoldingWeight(BigDecimal.ZERO.setScale(2)); // 0.00 으로 설정
                 }
             }
-        } else {
-            myDataResponseDTOList.forEach(dto -> dto.setHoldingWeight(BigDecimal.ZERO));
         }
 
         // 6. 파이차트용으로 종목코드 단위로 합치기
