@@ -20,8 +20,6 @@ import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Optional;
 
@@ -41,16 +39,9 @@ public class OauthService {
     @Value("${spring.security.oauth2.client.registration.google.client-secret}")
     private String GOOGLE_CLIENT_SECRET;
 
-    // 프론트가 redirectUri를 안 보내면 이 기본값을 사용->로직변경,프론트url강제
-    @Value("${google.redirect.uri:}")   // 비우기
-    private String GOOGLE_REDIRECT_URI_DEFAULT;
-
     @Transactional
     public GoogleLoginResponseDTO loginWithGoogle(String code, String redirectUri, String codeVerifier) {
-        //String decodedCode = URLDecoder.decode(code, StandardCharsets.UTF_8);
-        String finalRedirect = (redirectUri == null || redirectUri.isBlank())
-                ? null
-                : redirectUri;
+        String finalRedirect = (redirectUri == null || redirectUri.isBlank()) ? null : redirectUri;
         if (finalRedirect == null) {
             throw new IllegalArgumentException("redirectUri is required for front-callback flow");
         }
@@ -74,7 +65,7 @@ public class OauthService {
                     Member newMember = Member.builder()
                             .email(email)
                             .username(name)
-                            .profileImgUrl(profileImgUrl) // 신규 가입 시에는 이미지 URL 저장
+                            .profileImgUrl(profileImgUrl)
                             .loginType(LoginType.GOOGLE)
                             .build();
                     newMember.setNickname(name);
@@ -85,13 +76,14 @@ public class OauthService {
         boolean isNewMember = !member.isSignedUp();
 
         if (!isNewMember) {
-            member.update(name); // 기존 회원 로그인 시에도 이름만 업데이트
+            member.update(name);
         }
 
         String accessToken = jwtTokenProvider.createAccessToken(member.getId().toString());
         String refreshToken = jwtTokenProvider.createRefreshToken(member.getId().toString());
         member.setRefreshToken(refreshToken);
 
+        // DTO Builder가 내부적으로 Member -> MemberInfo 변환을 수행함
         return GoogleLoginResponseDTO.builder()
                 .isNewMember(isNewMember)
                 .accessToken(accessToken)
@@ -145,42 +137,33 @@ public class OauthService {
 
     @Transactional
     public GoogleLoginResponseDTO reissue(String refreshToken) {
-        // 1. 토큰 유효성 검사 (만료 여부 등)
         if (!jwtTokenProvider.validateToken(refreshToken)) {
-            // 유효하지 않거나 만료된 경우
             throw new GeneralException(ErrorStatus.JWT_REFRESH_TOKEN_EXPIRED);
         }
 
-        // 2. 토큰에서 유저 정보(Member ID) 추출
         Authentication authentication = jwtTokenProvider.getAuthentication(refreshToken);
         Long memberId = Long.parseLong(authentication.getName());
 
-        // 3. DB에서 멤버 조회
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.MEMBER_NOT_FOUND));
 
-        // 4. DB에 저장된 토큰과 요청받은 토큰이 일치하는지 확인 (탈취 방지)
         String savedRefreshToken = member.getRefreshToken();
         if (savedRefreshToken == null) {
             throw new GeneralException(ErrorStatus.JWT_REFRESH_TOKEN_NOT_FOUND);
         }
 
         if (!savedRefreshToken.equals(refreshToken)) {
-            // 토큰이 일치하지 않음 (다른 곳에서 로그인했거나 탈취 시도 가능성)
             log.warn("Refresh Token Mismatch for Member ID: {}", memberId);
             throw new GeneralException(ErrorStatus.JWT_REFRESH_TOKEN_EXPIRED);
         }
 
-        // 5. 새로운 토큰 쌍 발급 (RTR: Refresh Token Rotation)
         String newAccessToken = jwtTokenProvider.createAccessToken(memberId.toString());
         String newRefreshToken = jwtTokenProvider.createRefreshToken(memberId.toString());
 
-        // 6. DB 업데이트 (새로운 리프레시 토큰 저장)
         member.setRefreshToken(newRefreshToken);
 
-        // 7. 응답 반환
         return GoogleLoginResponseDTO.builder()
-                .isNewMember(false) // 갱신이므로 항상 false
+                .isNewMember(false)
                 .accessToken(newAccessToken)
                 .refreshToken(newRefreshToken)
                 .member(member)
@@ -190,18 +173,15 @@ public class OauthService {
     @Transactional
     public void logout(String refreshToken) {
         String resolvedToken = resolveToken(refreshToken);
-
         Authentication authentication = jwtTokenProvider.getAuthentication(resolvedToken);
-
-
         Long memberId = Long.parseLong(authentication.getName());
 
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.MEMBER_NOT_FOUND));
 
-        // DB의 리프레시 토큰 삭제
         member.clearRefreshToken();
     }
+
     private String resolveToken(String token) {
         if (StringUtils.hasText(token) && token.startsWith("Bearer ")) {
             return token.substring(7);
